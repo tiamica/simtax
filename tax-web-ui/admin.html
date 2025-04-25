@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaxApp Admin</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .admin-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .login-form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .admin-section {
+            margin-top: 2rem;
+        }
+
+        .user-list {
+            margin-top: 1rem;
+        }
+
+        .user-card {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: #0056b3;
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div id="loginSection" class="login-form">
+            <h2>Admin Login</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+        </div>
+
+        <div id="adminSection" class="admin-section" style="display: none;">
+            <h2>Admin Dashboard</h2>
+            <div class="user-list" id="userList">
+                <!-- User cards will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const users = [
+            // Example user data
+            {
+                phoneNumber: "+2348123456789",
+                tin: "123456789",
+                income: 1000000,
+                expenses: 200000,
+                payments: 150000,
+                status: "active"
+            }
+        ];
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (username === 'admin' && password === 'admin') {
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('adminSection').style.display = 'block';
+                loadUsers();
+            } else {
+                alert('Invalid credentials');
+            }
+        });
+
+        function loadUsers() {
+            const userList = document.getElementById('userList');
+            userList.innerHTML = '';
+
+            users.forEach(user => {
+                const userCard = document.createElement('div');
+                userCard.className = 'user-card';
+                userCard.innerHTML = `
+                    <h3>${user.phoneNumber}</h3>
+                    <div class="form-group">
+                        <label>TIN:</label>
+                        <input type="text" value="${user.tin}">
+                    </div>
+                    <div class="form-group">
+                        <label>Income:</label>
+                        <input type="number" value="${user.income}">
+                    </div>
+                    <div class="form-group">
+                        <label>Expenses:</label>
+                        <input type="number" value="${user.expenses}">
+                    </div>
+                    <div class="form-group">
+                        <label>Payments:</label>
+                        <input type="number" value="${user.payments}">
+                    </div>
+                    <div class="form-group">
+                        <label>Status:</label>
+                        <input type="text" value="${user.status}">
+                    </div>
+                    <button class="btn btn-primary">Update</button>
+                    <button class="btn btn-danger">Delete</button>
+                `;
+                userList.appendChild(userCard);
+            });
+        }
+    </script>
+</body>
+</html> 

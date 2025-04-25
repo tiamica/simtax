@@ -5,6 +5,13 @@ class TaxApp:
         # Add tax code and yearly returns storage
         self.tax_codes = {}
         self.yearly_returns = {}
+        self.outstanding_balances = {}  # Track outstanding tax amounts
+
+    def generate_tax_code(self, phone_number):
+        """Generate a unique tax code based on phone number"""
+        import hashlib
+        # Create a hash of the phone number and take first 8 characters
+        return "TAX-" + hashlib.sha256(phone_number.encode()).hexdigest()[:8].upper()
 
     def process_message(self, phone_number, message):
         try:
@@ -37,14 +44,20 @@ class TaxApp:
     def register_user(self, phone_number, tin):
         if phone_number in self.users:
             return "You are already registered."
+        
+        # Generate and store unique tax code
+        tax_code = self.generate_tax_code(phone_number)
+        self.tax_codes[phone_number] = tax_code
+        
         self.users[phone_number] = {
             'tin': tin,
             'income': 0,
             'expenses': 0,
             'payments': 0,
-            'status': 'registered'
+            'status': 'registered',
+            'tax_code': tax_code
         }
-        return "Registration successful! Welcome to TaxApp."
+        return f"Registration successful! Your tax code is {tax_code}"
 
     def record_income(self, phone_number, amount):
         user = self.users.get(phone_number)
@@ -64,9 +77,43 @@ class TaxApp:
         user = self.users.get(phone_number)
         if not user:
             return "Please register first using REG <TIN>"
+        
         taxable_income = user['income'] - user['expenses']
-        tax = max(0, taxable_income * self.tax_rate)
-        return f"Your tax liability is ₦{tax:,.2f}. Send PAY <amount> to make payment."
+        if taxable_income < 0:
+            return "No tax liability (negative taxable income)"
+        
+        # Calculate tax using Nigerian rates
+        tax = self.calculate_nigeria_tax(taxable_income)
+        
+        # Add any outstanding balance
+        outstanding = self.outstanding_balances.get(phone_number, 0)
+        total_tax = tax + outstanding
+        
+        return f"Your tax liability is ₦{total_tax:,.2f} (including ₦{outstanding:,.2f} outstanding). Send PAY <amount> to make payment."
+
+    def calculate_nigeria_tax(self, taxable_income):
+        tax = 0
+        remaining_income = taxable_income
+        
+        for threshold, rate in [
+            (300000, 0.07),    # First 300,000 at 7%
+            (300000, 0.11),    # Next 300,000 at 11%
+            (500000, 0.15),    # Next 500,000 at 15%
+            (500000, 0.19),    # Next 500,000 at 19%
+            (1600000, 0.21),   # Next 1,600,000 at 21%
+            (3200000, 0.24)    # Above 3,200,000 at 24%
+        ]:
+            if remaining_income <= 0:
+                break
+            amount = min(threshold, remaining_income)
+            tax += amount * rate
+            remaining_income -= amount
+        
+        # Apply 24% for any amount above the last threshold
+        if remaining_income > 0:
+            tax += remaining_income * 0.24
+        
+        return tax
 
     def make_payment(self, phone_number, amount):
         user = self.users.get(phone_number)
@@ -86,8 +133,7 @@ class TaxApp:
         user = self.users.get(phone_number)
         if not user:
             return "Please register first using REG <TIN>"
-        tax_code = self.tax_codes.get(phone_number, "TAX-CODE-12345")
-        return f"Your tax code is: {tax_code}"
+        return f"Your tax code is: {user['tax_code']}"
 
     def check_tax_return(self, phone_number, year):
         user = self.users.get(phone_number)

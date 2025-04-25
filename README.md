@@ -1,111 +1,87 @@
-# Tax Collection App - Shortcode System
-
-This project provides a mock tax collection system that can be accessed via shortcodes. It includes a mock server that simulates the tax system and handles shortcode interactions.
+# Tax Collection App
 
 ## Features
 
-1. **Shortcode Commands:**
-   - `REG <TIN>`: Register with Tax Identification Number
-   - `INC <amount>`: Report income
-   - `EXP <amount>`: Report expense
-   - `TAX`: Calculate and return tax amount
-   - `PAY <amount>`: Make payment
-   - `STATUS`: Check tax return status
-   - `CODE`: Check tax code
-   - `RETURN <year>`: Check tax return for a specific year
-   - `PAYRETURN <year> <amount>`: Pay tax return for a specific year
-
-2. **Mock Server:**
-   - Simulates a shortcode provider
-   - Provides API endpoints for testing
-   - Processes messages in real-time
+1. **Shortcode System**
+2. **Web Interface**
+3. **Mobile Simulator**
+4. **Admin Dashboard**
 
 ## Setup
 
-1. Create a Python virtual environment (Python 3.8+ recommended):
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate  # On Windows use: venv\Scripts\activate
-   ```
-
-2. Install dependencies:
+1. **Install Dependencies:**
    ```bash
    pip install -r requirements.txt
    ```
 
-3. Start the mock server:
+2. **Start the Mock Server:**
    ```bash
    python mockserver.py
    ```
 
-4. The server will be available at `http://localhost:5000`
+3. **Start the Web Interface:**
+   ```bash
+   python web_interface.py
+   ```
+
+## Usage
+
+### Shortcode Commands
+Access via mobile simulator or API:
+- `REG <TIN>`: Register with Tax Identification Number
+- `INC <amount>`: Report income
+- `EXP <amount>`: Report expense
+- `TAX`: Calculate tax
+- `PAY <amount>`: Make payment
+- `STATUS`: Check status
+- `CODE`: Check tax code
+- `RETURN <year>`: Check tax return
+- `PAYRETURN <year> <amount>`: Pay tax return
+
+### Web Interface
+Access at `http://localhost:5001`
+- View tax accounts
+- Check status and returns
+
+### Mobile Simulator
+Open `mobile-simulator.html` in your browser
+- Simulate shortcode interactions
+- View responses in chat format
+
+### Admin Dashboard
+Open `admin.html` in your browser
+- Login with username: `admin`, password: `admin`
+- View and manage all user accounts
+- Update user information
+- Delete accounts
+- Access detailed tax information for each user
+- Manage tax rates and configurations
+
+To access the admin tool:
+1. Open the `tax-web-ui` folder
+2. Double-click `admin.html` to open in your browser
+3. Login with username: `admin` and password: `admin`
+4. Use the dashboard to manage user accounts and tax data
 
 ## API Endpoints
 
-- **POST /send**
-  Send a shortcode message
-  ```json
-  {
-      "phone_number": "+2348123456789",
-      "message": "REG 123456789"
-  }
-  ```
-
-- **GET /status/<phone_number>**
-  Get current tax status for a user
+- **POST /send** - Send shortcode message
+- **GET /status/<phone_number>** - Get user status
+- **POST /calculate-tax** - Calculate tax
 
 ## Example Usage
 
 1. Register:
    ```bash
    curl -X POST http://localhost:5000/send \
-       -H "Content-Type: application/json" \
        -d '{"phone_number": "+2348123456789", "message": "REG 123456789"}'
    ```
 
-2. Report income:
+2. Calculate Tax:
    ```bash
-   curl -X POST http://localhost:5000/send \
-       -H "Content-Type: application/json" \
-       -d '{"phone_number": "+2348123456789", "message": "INC 500000"}'
+   curl -X POST http://localhost:5000/calculate-tax \
+       -d '{"taxable_income": 1000000}'
    ```
 
-3. Check tax code:
-   ```bash
-   curl -X POST http://localhost:5000/send \
-       -H "Content-Type: application/json" \
-       -d '{"phone_number": "+2348123456789", "message": "CODE"}'
-   ```
-
-4. Check tax return for 2023:
-   ```bash
-   curl -X POST http://localhost:5000/send \
-       -H "Content-Type: application/json" \
-       -d '{"phone_number": "+2348123456789", "message": "RETURN 2023"}'
-   ```
-
-5. Pay tax return for 2023:
-   ```bash
-   curl -X POST http://localhost:5000/send \
-       -H "Content-Type: application/json" \
-       -d '{"phone_number": "+2348123456789", "message": "PAYRETURN 2023 45000"}'
-   ```
-
-## Implementation Details
-
-The system consists of:
-- `tax_app.py`: Core tax application logic
-- `mockserver.py`: Mock server implementation
-- `shortcode_integration.py`: Shortcode handler
-
-## Testing
-
-You can test the system using curl commands or Postman. The mock server will print all responses to the console.
-
-## Future Enhancements
-
-1. Add database persistence
-2. Implement actual SMS integration
-3. Add authentication and security
-4. Implement more sophisticated tax calculation rules
-5. Add error handling and validation 
+3. View Account:
+   Open `http://localhost:5001` in browser 

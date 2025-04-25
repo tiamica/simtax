@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">Tax Account Overview</h4>
+            </div>
+            <div class="card-body">
+                <h5>Phone Number: {{ phone_number }}</h5>
+                <h5>Tax Code: {{ tax_code }}</h5>
+                <hr>
+                <h5>Account Status:</h5>
+                <pre>{{ status }}</pre>
+            </div>
+        </div>
+
+        {% for year, return_data in returns.items() %}
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Tax Return for {{ year }}</h5>
+            </div>
+            <div class="card-body">
+                <pre>{{ return_data }}</pre>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 
