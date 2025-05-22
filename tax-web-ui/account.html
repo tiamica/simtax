@@ -3,46 +3,740 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tax Account</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Tax Account Overview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            margin-bottom: 0.5rem;
+        }
+
+        .user-info {
+            font-size: 1.1rem;
+        }
+
+        .current-year {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .current-year h2 {
+            color: #007bff;
+            margin-bottom: 1.5rem;
+        }
+
+        .tax-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tax-item {
+            background-color: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .tax-item .label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tax-item .value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .tax-item.highlight {
+            background-color: #e8f4ff;
+        }
+
+        .tax-status {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        .tax-status.pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .tax-status.paid {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .tax-status.active {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+
+        .history {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .history h2 {
+            color: #007bff;
+            margin-bottom: 1.5rem;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .history-table th,
+        .history-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .history-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .history-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .login-section {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 400px;
+            margin: 4rem auto;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #495057;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        button {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .payment-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #dee2e6;
+        }
+
+        .payment-section h3 {
+            color: #007bff;
+            margin-bottom: 1rem;
+        }
+
+        .payment-form {
+            max-width: 400px;
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .header-left {
+            flex: 1;
+        }
+
+        .logout-btn {
+            width: auto;
+            padding: 0.5rem 1rem;
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 1px solid white;
+            color: white;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+        }
+
+        .logout-btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .login-divider {
+            text-align: center;
+            margin: 1rem 0;
+            position: relative;
+        }
+
+        .login-divider::before,
+        .login-divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 45%;
+            height: 1px;
+            background-color: #ddd;
+        }
+
+        .login-divider::before {
+            left: 0;
+        }
+
+        .login-divider::after {
+            right: 0;
+        }
+
+        .login-divider span {
+            background-color: white;
+            padding: 0 10px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .secondary-btn {
+            background-color: #f8f9fa;
+            color: #007bff;
+            border: 1px solid #007bff;
+            margin-top: 0.5rem;
+        }
+
+        .secondary-btn:hover {
+            background-color: #e8f4ff;
+        }
+
+        .app-header {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background-color: white;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 1rem;
+        }
+
+        .app-header img {
+            height: 40px;
+            margin-right: 1rem;
+        }
+
+        .app-header h1 {
+            margin: 0;
+            color: #333;
+            font-size: 1.5rem;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1>Your Tax Account</h1>
-        <div class="account-overview">
-            <div class="account-info">
-                <h2>Account Details</h2>
-                <div class="info-box">
-                    <div class="info-item">
-                        <span class="info-label">Phone Number:</span>
-                        <div class="info-value" id="phoneNumber"></div>
+        <div id="loginSection" class="login-section">
+            <div class="app-header">
+                <img src="Fourier-Analytics-Logo.png" alt="Fourier Analytics Logo">
+                <h1>Account Login</h1>
+            </div>
+            <div class="form-group">
+                <label for="phoneNumber">Phone Number:</label>
+                <input type="text" id="phoneNumber" placeholder="Enter your phone number">
+            </div>
+            <button onclick="login()">Login</button>
+            <div class="login-divider">
+                <span>or</span>
+            </div>
+            <button onclick="showRegistrationForm()" class="secondary-btn">Create New Account</button>
+        </div>
+
+        <div id="registrationSection" class="login-section" style="display: none;">
+            <div class="app-header">
+                <img src="Fourier-Analytics-Logo.png" alt="Fourier Analytics Logo">
+                <h1>Register New Account</h1>
+            </div>
+            <div class="form-group">
+                <label for="regPhoneNumber">Phone Number:</label>
+                <input type="text" id="regPhoneNumber" placeholder="Enter your phone number">
+            </div>
+            <div class="form-group">
+                <label for="regTIN">TIN (Tax Identification Number):</label>
+                <input type="text" id="regTIN" placeholder="Enter your TIN">
+            </div>
+            <button onclick="register()">Register</button>
+            <button onclick="showLoginForm()" class="secondary-btn">Back to Login</button>
+        </div>
+
+        <div id="accountSection" style="display: none;">
+            <div class="app-header">
+                <img src="Fourier-Analytics-Logo.png" alt="Fourier Analytics Logo">
+                <h1>Tax Account Overview</h1>
+            </div>
+            <div class="header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <h1>Tax Account Overview</h1>
+                        <div class="user-info" id="userInfo"></div>
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Tax Code:</span>
-                        <div class="info-value" id="taxCode"></div>
-                    </div>
-                </div>
-                
-                <h3>Account Status</h3>
-                <div class="status-box">
-                    <pre id="status"></pre>
+                    <button onclick="logout()" class="logout-btn">Logout</button>
                 </div>
             </div>
-            
-            <div class="returns-section">
-                <h2>Yearly Returns</h2>
-                <div id="yearlyReturns" class="returns-list">
-                    <div class="loading">
-                        <div class="loading-spinner"></div>
-                        <p>Loading tax returns...</p>
+
+            <div class="current-year">
+                <div class="year-selector" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2>Tax Summary</h2>
+                    <select id="yearSelector" onchange="loadAccountData()" style="padding: 0.5rem; border-radius: 4px; border: 1px solid #ddd;">
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                    </select>
+                </div>
+                <div id="currentYearSummary" class="tax-summary">
+                    <h3>Current Year Summary</h3>
+                    <div class="tax-item">
+                        <div class="label">Year</div>
+                        <div class="value" id="currentYear"></div>
+                    </div>
+                    <div class="tax-item">
+                        <div class="label">Income</div>
+                        <div class="value" id="currentIncome"></div>
+                    </div>
+                    <div class="tax-item">
+                        <div class="label">Expenditure</div>
+                        <div class="value" id="currentExpenses"></div>
+                    </div>
+                    <div class="tax-item highlight">
+                        <div class="label">Total Tax Owed</div>
+                        <div class="value" id="currentTaxOwed"></div>
+                    </div>
+                    <div class="tax-item highlight">
+                        <div class="label">Tax Paid</div>
+                        <div class="value" id="currentTaxPaid"></div>
+                    </div>
+                    <div class="tax-item highlight">
+                        <div class="label">Remaining Tax</div>
+                        <div class="value" id="currentRemainingTax"></div>
+                    </div>
+                    <div class="tax-item">
+                        <div class="label">Status</div>
+                        <div class="value" id="currentStatus"></div>
                     </div>
                 </div>
+                <div id="paymentSection" style="display: none;">
+                    <h3>Make Payment</h3>
+                    <div class="payment-form">
+                        <input type="number" id="paymentAmount" placeholder="Enter amount to pay" min="0">
+                        <button onclick="processPayment()">Pay Now</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="history">
+                <h2>Tax History</h2>
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>Income</th>
+                            <th>Expenditure</th>
+                            <th>Tax Owed</th>
+                            <th>Tax Paid</th>
+                            <th>Remaining Tax</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody"></tbody>
+                </table>
             </div>
         </div>
-        <button onclick="window.location.href='index.html'" class="back-button">
-            Back to Login
-        </button>
     </div>
-    <script src="scripts.js"></script>
+
+    <script>
+        const MOCK_SERVER_URL = 'http://192.168.1.159:5000';
+        let currentPhoneNumber = null;
+
+        // Nigerian tax calculation function
+        function calculate_nigeria_tax(taxable_income) {
+            const TAX_RATES = [
+                { threshold: 300000, rate: 0.07 },  // First 300,000 at 7%
+                { threshold: 300000, rate: 0.11 },  // Next 300,000 at 11%
+                { threshold: 500000, rate: 0.15 },  // Next 500,000 at 15%
+                { threshold: 500000, rate: 0.19 },  // Next 500,000 at 19%
+                { threshold: 1600000, rate: 0.21 }, // Next 1,600,000 at 21%
+                { threshold: 3200000, rate: 0.24 }  // Above 3,200,000 at 24%
+            ];
+            
+            let tax = 0;
+            let remaining_income = taxable_income;
+            
+            for (const { threshold, rate } of TAX_RATES) {
+                if (remaining_income <= 0) break;
+                const amount = Math.min(threshold, remaining_income);
+                tax += amount * rate;
+                remaining_income -= amount;
+            }
+            
+            // Apply 24% for any amount above the last threshold
+            if (remaining_income > 0) {
+                tax += remaining_income * 0.24;
+            }
+            
+            return tax;
+        }
+
+        async function login() {
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            if (!phoneNumber || !/^\d{10,}$/.test(phoneNumber)) {
+                alert('Please enter a valid phone number');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${MOCK_SERVER_URL}/admin/user/${phoneNumber}`);
+                if (!response.ok) throw new Error('User not found');
+
+                const data = await response.json();
+                if (data.status === 'success') {
+                    currentPhoneNumber = phoneNumber;
+                    document.getElementById('loginSection').style.display = 'none';
+                    document.getElementById('accountSection').style.display = 'block';
+                    loadAccountData();
+                }
+            } catch (error) {
+                alert('Failed to login: ' + error.message);
+            }
+        }
+
+        async function loadAccountData() {
+            try {
+                // Get selected year
+                const selectedYear = parseInt(document.getElementById('yearSelector').value);
+                
+                // Get current year data
+                const response = await fetch(`${MOCK_SERVER_URL}/tax/${currentPhoneNumber}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        year: selectedYear
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('Server error:', errorData);
+                    throw new Error(errorData.error || 'Failed to load account data');
+                }
+
+                const data = await response.json();
+                console.log('Server response:', data); // Debug log
+
+                if (data.status === 'success' && data.data) {
+                    const taxData = data.data;
+                    const income = parseFloat(taxData.income || 0);
+                    const expenses = parseFloat(taxData.expenses || taxData.expenditure || 0);
+                    
+                    // Calculate taxable income
+                    const taxableIncome = Math.max(0, income - expenses);
+                    
+                    // Calculate tax owed using the Nigerian tax rates
+                    const taxOwed = calculate_nigeria_tax(taxableIncome);
+                    
+                    const taxPaid = parseFloat(taxData.tax_paid || 0);
+                    const remainingTax = Math.max(0, taxOwed - taxPaid);
+                    
+                    // Update status based on tax paid vs tax owed
+                    let status = 'pending';
+                    if (taxPaid >= taxOwed) {
+                        status = 'paid';
+                    } else if (taxPaid > 0) {
+                        status = 'active';
+                    }
+
+                    // Display current year summary
+                    document.getElementById('currentYear').textContent = selectedYear;
+                    document.getElementById('currentIncome').textContent = `₦${income.toLocaleString()}`;
+                    document.getElementById('currentExpenses').textContent = `₦${expenses.toLocaleString()}`;
+                    document.getElementById('currentTaxOwed').textContent = `₦${taxOwed.toLocaleString()}`;
+                    document.getElementById('currentTaxPaid').textContent = `₦${taxPaid.toLocaleString()}`;
+                    document.getElementById('currentRemainingTax').textContent = `₦${remainingTax.toLocaleString()}`;
+                    document.getElementById('currentStatus').textContent = status;
+                    document.getElementById('currentStatus').className = `status-badge status-${status}`;
+
+                    // Show/hide payment section based on remaining tax
+                    const paymentSection = document.getElementById('paymentSection');
+                    paymentSection.style.display = remainingTax > 0 ? 'block' : 'none';
+                } else {
+                    console.error('Invalid response format:', data);
+                    throw new Error('Invalid response from server');
+                }
+
+                // Get historical data
+                const historicalResponse = await fetch(`${MOCK_SERVER_URL}/return/${currentPhoneNumber}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        year: selectedYear
+                    })
+                });
+
+                if (!historicalResponse.ok) {
+                    const errorData = await historicalResponse.json();
+                    console.error('Historical data error:', errorData);
+                    throw new Error(errorData.error || 'Failed to load historical data');
+                }
+
+                const historicalData = await historicalResponse.json();
+                console.log('Historical data response:', historicalData); // Debug log
+
+                if (historicalData.status === 'success' && historicalData.data) {
+                    const tbody = document.getElementById('historyTableBody');
+                    tbody.innerHTML = '';
+
+                    // Get last 5 years of data
+                    const years = Array.from({length: 5}, (_, i) => selectedYear - i);
+                    for (const year of years) {
+                        // Find data for this year in the response
+                        const yearData = {
+                            year,
+                            income: 0,
+                            expenses: 0,
+                            tax_paid: 0,
+                            status: 'pending',
+                            tax_owed: 0
+                        };
+
+                        // If we have data for this year, update the values
+                        if (historicalData.data.year === year) {
+                            yearData.income = parseFloat(historicalData.data.income || 0);
+                            yearData.expenses = parseFloat(historicalData.data.expenses || historicalData.data.expenditure || 0);
+                            yearData.tax_paid = parseFloat(historicalData.data.tax_paid || 0);
+                            yearData.status = historicalData.data.status || 'pending';
+                        }
+                        
+                        // Calculate tax owed based on income and expenses
+                        const taxable_income = Math.max(0, yearData.income - yearData.expenses);
+                        yearData.tax_owed = calculate_nigeria_tax(taxable_income);
+
+                        const taxOwed = yearData.tax_owed;
+                        const taxPaid = yearData.tax_paid;
+                        const remainingTax = Math.max(0, taxOwed - taxPaid);
+                        
+                        // Update status based on tax paid vs tax owed
+                        let status = 'pending';
+                        if (taxPaid >= taxOwed) {
+                            status = 'paid';
+                        } else if (taxPaid > 0) {
+                            status = 'active';
+                        }
+
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${year}</td>
+                            <td>₦${yearData.income.toLocaleString()}</td>
+                            <td>₦${yearData.expenses.toLocaleString()}</td>
+                            <td>₦${taxOwed.toLocaleString()}</td>
+                            <td>₦${taxPaid.toLocaleString()}</td>
+                            <td>₦${remainingTax.toLocaleString()}</td>
+                            <td><span class="status-badge status-${status}">${status}</span></td>
+                        `;
+                        tbody.appendChild(row);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading account data:', error);
+                alert('Failed to load account data: ' + error.message);
+            }
+        }
+
+        async function processPayment() {
+            const amount = parseFloat(document.getElementById('paymentAmount').value);
+            if (isNaN(amount) || amount <= 0) {
+                alert('Please enter a valid payment amount');
+                return;
+            }
+
+            try {
+                const selectedYear = parseInt(document.getElementById('yearSelector').value);
+                const response = await fetch(`${MOCK_SERVER_URL}/pay-tax/${currentPhoneNumber}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        amount: amount,
+                        year: selectedYear
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Payment failed');
+                }
+
+                const data = await response.json();
+                if (data.status === 'success') {
+                    // Refresh account data to show updated values
+                    await loadAccountData();
+                    document.getElementById('paymentAmount').value = '';
+                    alert('Payment processed successfully!');
+                }
+            } catch (error) {
+                console.error('Error processing payment:', error);
+                alert('Failed to process payment. Please try again later.');
+            }
+        }
+
+        function logout() {
+            currentPhoneNumber = null;
+            
+            // Show login section, hide account section
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('accountSection').style.display = 'none';
+            
+            // Clear login form
+            document.getElementById('phoneNumber').value = '';
+            
+            // Clear all data displays
+            document.getElementById('currentYearSummary').innerHTML = '';
+            document.getElementById('historyTableBody').innerHTML = '';
+            document.getElementById('userInfo').innerHTML = '';
+            
+            // Hide payment section and clear payment amount
+            const paymentSection = document.getElementById('paymentSection');
+            paymentSection.style.display = 'none';
+            document.getElementById('paymentAmount').value = '';
+            
+            // Remove any success/error messages
+            const successMessage = paymentSection.querySelector('.success-message');
+            const errorMessage = paymentSection.querySelector('.error-message');
+            if (successMessage) successMessage.remove();
+            if (errorMessage) errorMessage.remove();
+        }
+
+        function showRegistrationForm() {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('registrationSection').style.display = 'block';
+        }
+
+        function showLoginForm() {
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('registrationSection').style.display = 'none';
+        }
+
+        async function register() {
+            const phoneNumber = document.getElementById('regPhoneNumber').value.trim();
+            const tin = document.getElementById('regTIN').value.trim();
+
+            if (!phoneNumber || !/^\d{10,}$/.test(phoneNumber)) {
+                alert('Please enter a valid phone number');
+                return;
+            }
+
+            if (!tin || tin.length < 6) {
+                alert('Please enter a valid TIN (at least 6 characters)');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${MOCK_SERVER_URL}/send`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phone_number: phoneNumber,
+                        message: `REG ${tin}`
+                    })
+                });
+
+                if (!response.ok) throw new Error('Registration failed');
+
+                const data = await response.json();
+                if (data.status === 'success') {
+                    alert('Registration successful! You can now login.');
+                    showLoginForm();
+                    document.getElementById('phoneNumber').value = phoneNumber;
+                } else {
+                    throw new Error(data.message || 'Registration failed');
+                }
+            } catch (error) {
+                alert('Registration failed: ' + error.message);
+            }
+        }
+    </script>
 </body>
 </html> 

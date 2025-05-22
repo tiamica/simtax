@@ -3,40 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaxApp Admin</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Tax Admin Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        .admin-container {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            padding: 2rem;
+        }
+
+        .container {
             max-width: 1200px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .login-form {
-            max-width: 400px;
             margin: 0 auto;
-            padding: 2rem;
-            background-color: #f8f9fa;
-            border-radius: 8px;
         }
 
-        .admin-section {
-            margin-top: 2rem;
-        }
-
-        .user-list {
-            margin-top: 1rem;
-        }
-
-        .user-card {
-            background-color: white;
+        .app-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            background: white;
             padding: 1rem;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .app-header img {
+            height: 40px;
+            margin-right: 1rem;
+        }
+
+        .app-header h1 {
+            color: #333;
+            font-size: 1.5rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .tab {
+            padding: 0.8rem 1.5rem;
+            background: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .tab.active {
+            background: #007bff;
+            color: white;
+        }
+
+        .panel {
+            display: none;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .panel.active {
+            display: block;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .search-bar button {
+            padding: 0.8rem 1.5rem;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
             margin-bottom: 1rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .data-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        .pagination button {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .pagination button.active {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .analytics-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .analytics-card h3 {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+
+        .analytics-value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #007bff;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+            height: 300px;
+        }
+
+        .status-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-active {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .status-paid {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #333;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
         }
 
         .form-group {
@@ -46,121 +244,584 @@
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
-            font-weight: 600;
+            color: #666;
         }
 
         .form-group input {
             width: 100%;
-            padding: 0.5rem;
+            padding: 0.8rem;
             border: 1px solid #ddd;
             border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
         }
 
         .btn {
-            padding: 0.5rem 1rem;
+            padding: 0.8rem 1.5rem;
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            font-weight: 500;
         }
 
         .btn-primary {
-            background-color: #0056b3;
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
             color: white;
         }
 
         .btn-danger {
-            background-color: #dc3545;
+            background: #dc3545;
             color: white;
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            text-align: center;
         }
     </style>
 </head>
 <body>
-    <div class="admin-container">
-        <div id="loginSection" class="login-form">
-            <h2>Admin Login</h2>
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="username">Username:</label>
-                    <input type="text" id="username" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Login</button>
-            </form>
+    <div class="container">
+        <div class="app-header">
+            <img src="Fourier-Analytics-Logo.png" alt="Fourier Analytics">
+            <h1>Tax Admin Dashboard</h1>
         </div>
 
-        <div id="adminSection" class="admin-section" style="display: none;">
-            <h2>Admin Dashboard</h2>
-            <div class="user-list" id="userList">
-                <!-- User cards will be loaded here -->
+        <div class="tabs">
+            <button class="tab active" onclick="showPanel('users')">User Management</button>
+            <button class="tab" onclick="showPanel('analytics')">Analytics</button>
+        </div>
+
+        <div id="usersPanel" class="panel active">
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search by phone number, TIN, or status...">
+                <button onclick="searchUsers()">Search</button>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Phone Number</th>
+                        <th>TIN</th>
+                        <th>Year</th>
+                        <th>Income</th>
+                        <th>Tax Owed</th>
+                        <th>Tax Paid</th>
+                        <th>Remaining Tax</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody"></tbody>
+            </table>
+
+            <div class="pagination" id="userPagination"></div>
+        </div>
+
+        <div id="analyticsPanel" class="panel">
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h3>Total Tax Collected</h3>
+                    <div class="analytics-value" id="totalCollected">₦0</div>
+                </div>
+                <div class="analytics-card">
+                    <h3>Total Unpaid Tax</h3>
+                    <div class="analytics-value" id="totalUnpaid">₦0</div>
+                </div>
+                <div class="analytics-card">
+                    <h3>Collection Rate</h3>
+                    <div class="analytics-value" id="collectionRate">0%</div>
+                </div>
+                <div class="analytics-card">
+                    <h3>Active Taxpayers</h3>
+                    <div class="analytics-value" id="activeTaxpayers">0</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="yearlyTrendChart"></canvas>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="statusDistributionChart"></canvas>
             </div>
         </div>
     </div>
 
+    <!-- Edit User Modal -->
+    <div id="editUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit User Data</h2>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="editUserForm">
+                <div class="form-group">
+                    <label for="editPhoneNumber">Phone Number</label>
+                    <input type="text" id="editPhoneNumber" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="editTIN">TIN</label>
+                    <input type="text" id="editTIN">
+                </div>
+                <div class="form-group">
+                    <label for="editYear">Year</label>
+                    <input type="number" id="editYear">
+                </div>
+                <div class="form-group">
+                    <label for="editIncome">Income</label>
+                    <input type="number" id="editIncome">
+                </div>
+                <div class="form-group">
+                    <label for="editExpenditure">Expenditure</label>
+                    <input type="number" id="editExpenditure">
+                </div>
+                <div class="form-group">
+                    <label for="editTaxPaid">Tax Paid</label>
+                    <input type="number" id="editTaxPaid">
+                </div>
+                <div class="form-group">
+                    <label for="editTaxOwed">Tax Owed</label>
+                    <input type="number" id="editTaxOwed" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="editStatus">Status</label>
+                    <select id="editStatus">
+                        <option value="pending">Pending</option>
+                        <option value="active">Active</option>
+                        <option value="paid">Paid</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
-        const users = [
-            // Example user data
-            {
-                phoneNumber: "+2348123456789",
-                tin: "123456789",
-                income: 1000000,
-                expenses: 200000,
-                payments: 150000,
-                status: "active"
+        const MOCK_SERVER_URL = 'http://192.168.1.159:5000';
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let userData = [];
+        let filteredData = [];
+
+        // Initialize the dashboard
+        async function initializeDashboard() {
+            await loadUserData();
+            updateAnalytics();
+            initializeCharts();
+        }
+
+        // Load user data from server
+        async function loadUserData() {
+            try {
+                const response = await fetch(`${MOCK_SERVER_URL}/admin/users`);
+                const data = await response.json();
+                userData = data.data;
+                filteredData = [...userData];
+                displayUsers(currentPage);
+                updatePagination();
+            } catch (error) {
+                console.error('Error loading user data:', error);
             }
-        ];
+        }
 
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        // Display users for current page
+        function displayUsers(page) {
+            const start = (page - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageData = filteredData.slice(start, end);
+
+            const tbody = document.getElementById('userTableBody');
+            tbody.innerHTML = '';
+
+            pageData.forEach(user => {
+                const income = parseFloat(user.income || 0);
+                const expenditure = parseFloat(user.expenditure || 0);
+                let taxOwed = parseFloat(user.tax_owed || 0);
+                
+                // Calculate tax owed if not already set
+                if (!user.tax_owed) {
+                    const taxableIncome = Math.max(0, income - expenditure);
+                    taxOwed = calculateNigeriaTax(taxableIncome);
+                    user.tax_owed = taxOwed; // Store it for future use
+                }
+                
+                const taxPaid = parseFloat(user.tax_paid || 0);
+                const remainingTax = Math.max(0, taxOwed - taxPaid);
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.phone_number}</td>
+                    <td>${user.tin || 'N/A'}</td>
+                    <td>${user.tax_year || new Date().getFullYear()}</td>
+                    <td>₦${parseFloat(user.income || 0).toLocaleString()}</td>
+                    <td>₦${taxOwed.toLocaleString()}</td>
+                    <td>₦${taxPaid.toLocaleString()}</td>
+                    <td>₦${remainingTax.toLocaleString()}</td>
+                    <td><span class="status-badge status-${user.status || 'pending'}">${user.status || 'pending'}</span></td>
+                    <td>
+                        <button onclick="editUser('${user.phone_number}')" class="btn-edit">Edit</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Update pagination controls
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            const pagination = document.getElementById('userPagination');
+            pagination.innerHTML = '';
+
+            for (let i = 1; i <= totalPages; i++) {
+                const button = document.createElement('button');
+                button.textContent = i;
+                button.classList.toggle('active', i === currentPage);
+                button.onclick = () => {
+                    currentPage = i;
+                    displayUsers(currentPage);
+                    updatePagination();
+                };
+                pagination.appendChild(button);
+            }
+        }
+
+        // Search users
+        function searchUsers() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            filteredData = userData.filter(user => 
+                user.phone_number.toLowerCase().includes(searchTerm) ||
+                (user.tin && user.tin.toLowerCase().includes(searchTerm)) ||
+                (user.status && user.status.toLowerCase().includes(searchTerm))
+            );
+            currentPage = 1;
+            displayUsers(currentPage);
+            updatePagination();
+        }
+
+        // Edit user function
+        async function editUser(phoneNumber) {
+            const user = userData.find(u => u.phone_number === phoneNumber);
+            if (!user) return;
+
+            document.getElementById('editPhoneNumber').value = user.phone_number;
+            document.getElementById('editTIN').value = user.tin || '';
+            document.getElementById('editYear').value = user.tax_year || new Date().getFullYear();
+            document.getElementById('editIncome').value = user.income || 0;
+            document.getElementById('editExpenditure').value = user.expenditure || 0;
+            document.getElementById('editTaxPaid').value = user.tax_paid || 0;
+            document.getElementById('editStatus').value = user.status || 'pending';
+
+            // Calculate tax owed
+            const income = parseFloat(user.income || 0);
+            const expenditure = parseFloat(user.expenditure || 0);
+            const taxOwed = calculateNigeriaTax(Math.max(0, income - expenditure));
+            document.getElementById('editTaxOwed').value = taxOwed.toFixed(2);
+
+            document.getElementById('editUserModal').style.display = 'block';
+        }
+
+        // Calculate tax based on Nigerian tax rates
+        function calculateNigeriaTax(taxableIncome) {
+            const TAX_RATES = [
+                [300000, 0.07],    // First 300,000 at 7%
+                [300000, 0.11],    // Next 300,000 at 11%
+                [500000, 0.15],    // Next 500,000 at 15%
+                [500000, 0.19],    // Next 500,000 at 19%
+                [1600000, 0.21],   // Next 1,600,000 at 21%
+                [3200000, 0.24]    // Above 3,200,000 at 24%
+            ];
+
+            let tax = 0;
+            let remainingIncome = taxableIncome;
+            
+            for (const [threshold, rate] of TAX_RATES) {
+                if (remainingIncome <= 0) break;
+                const amount = Math.min(threshold, remainingIncome);
+                tax += amount * rate;
+                remainingIncome -= amount;
+            }
+            
+            // Apply 24% for any amount above the last threshold
+            if (remainingIncome > 0) {
+                tax += remainingIncome * 0.24;
+            }
+            
+            return tax;
+        }
+
+        // Recalculate tax when income or expenditure changes
+        document.getElementById('editIncome').addEventListener('change', updateTaxOwed);
+        document.getElementById('editExpenditure').addEventListener('change', updateTaxOwed);
+
+        function updateTaxOwed() {
+            const income = parseFloat(document.getElementById('editIncome').value || 0);
+            const expenditure = parseFloat(document.getElementById('editExpenditure').value || 0);
+            const taxOwed = calculateNigeriaTax(Math.max(0, income - expenditure));
+            document.getElementById('editTaxOwed').value = taxOwed.toFixed(2);
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('editUserModal').style.display = 'none';
+        }
+
+        // Handle form submission
+        document.getElementById('editUserForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+            
+            const phoneNumber = document.getElementById('editPhoneNumber').value;
+            const income = parseFloat(document.getElementById('editIncome').value);
+            const expenditure = parseFloat(document.getElementById('editExpenditure').value || 0);
+            
+            // Calculate tax owed
+            const taxableIncome = Math.max(0, income - expenditure);
+            const taxOwed = calculateNigeriaTax(taxableIncome);
+            
+            const updatedUser = {
+                phone_number: phoneNumber,
+                tin: document.getElementById('editTIN').value,
+                tax_year: parseInt(document.getElementById('editYear').value),
+                income: income,
+                expenditure: expenditure,
+                tax_owed: taxOwed,
+                tax_paid: parseFloat(document.getElementById('editTaxPaid').value)
+            };
 
-            if (username === 'admin' && password === 'admin') {
-                document.getElementById('loginSection').style.display = 'none';
-                document.getElementById('adminSection').style.display = 'block';
-                loadUsers();
-            } else {
-                alert('Invalid credentials');
+            try {
+                // First, update the user data in the CSV file
+                const response = await fetch(`${MOCK_SERVER_URL}/admin/update-user`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updatedUser)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to update user data');
+                }
+
+                const result = await response.json();
+                
+                // Then update the local data
+                const index = userData.findIndex(u => u.phone_number === phoneNumber);
+                if (index !== -1) {
+                    userData[index] = result.data;
+                    filteredData = [...userData];
+                    displayUsers(currentPage);
+                    updateAnalytics();
+                    initializeCharts();
+                }
+
+                // Show success message
+                const successDiv = document.createElement('div');
+                successDiv.className = 'success-message';
+                successDiv.textContent = 'User data updated successfully!';
+                document.getElementById('editUserModal').appendChild(successDiv);
+
+                // Remove success message after 3 seconds
+                setTimeout(() => {
+                    successDiv.remove();
+                    closeModal();
+                }, 3000);
+
+            } catch (error) {
+                console.error('Error updating user:', error);
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.textContent = `Error updating user data: ${error.message}`;
+                document.getElementById('editUserModal').appendChild(errorDiv);
+
+                // Remove error message after 3 seconds
+                setTimeout(() => {
+                    errorDiv.remove();
+                }, 3000);
             }
         });
 
-        function loadUsers() {
-            const userList = document.getElementById('userList');
-            userList.innerHTML = '';
+        // Update analytics function
+        function updateAnalytics() {
+            let totalCollected = 0;
+            let totalUnpaid = 0;
+            let activeUsers = 0;
 
-            users.forEach(user => {
-                const userCard = document.createElement('div');
-                userCard.className = 'user-card';
-                userCard.innerHTML = `
-                    <h3>${user.phoneNumber}</h3>
-                    <div class="form-group">
-                        <label>TIN:</label>
-                        <input type="text" value="${user.tin}">
-                    </div>
-                    <div class="form-group">
-                        <label>Income:</label>
-                        <input type="number" value="${user.income}">
-                    </div>
-                    <div class="form-group">
-                        <label>Expenses:</label>
-                        <input type="number" value="${user.expenses}">
-                    </div>
-                    <div class="form-group">
-                        <label>Payments:</label>
-                        <input type="number" value="${user.payments}">
-                    </div>
-                    <div class="form-group">
-                        <label>Status:</label>
-                        <input type="text" value="${user.status}">
-                    </div>
-                    <button class="btn btn-primary">Update</button>
-                    <button class="btn btn-danger">Delete</button>
-                `;
-                userList.appendChild(userCard);
+            userData.forEach(user => {
+                const income = parseFloat(user.income || 0);
+                const expenditure = parseFloat(user.expenditure || 0);
+                let taxOwed = parseFloat(user.tax_owed || 0);
+                
+                // Calculate tax owed if not already set
+                if (!user.tax_owed) {
+                    const taxableIncome = Math.max(0, income - expenditure);
+                    taxOwed = calculateNigeriaTax(taxableIncome);
+                    user.tax_owed = taxOwed; // Store it for future use
+                }
+                
+                const taxPaid = parseFloat(user.tax_paid || 0);
+                const remainingTax = Math.max(0, taxOwed - taxPaid);
+                
+                totalCollected += taxPaid;
+                totalUnpaid += remainingTax;
+                
+                if (user.status === 'active' || user.status === 'paid') {
+                    activeUsers++;
+                }
+            });
+
+            document.getElementById('totalCollected').textContent = `₦${totalCollected.toLocaleString()}`;
+            document.getElementById('totalUnpaid').textContent = `₦${totalUnpaid.toLocaleString()}`;
+            document.getElementById('collectionRate').textContent = 
+                totalCollected + totalUnpaid > 0 ? 
+                `${((totalCollected / (totalCollected + totalUnpaid)) * 100).toFixed(1)}%` : '0%';
+            document.getElementById('activeTaxpayers').textContent = activeUsers;
+        }
+
+        // Initialize charts with updated data
+        function initializeCharts() {
+            // Yearly trend chart
+            const yearlyData = processYearlyData();
+            new Chart(document.getElementById('yearlyTrendChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: yearlyData.years,
+                    datasets: [
+                        {
+                            label: 'Tax Collected',
+                            data: yearlyData.collected,
+                            borderColor: '#28a745',
+                            fill: false
+                        },
+                        {
+                            label: 'Unpaid Tax',
+                            data: yearlyData.unpaid,
+                            borderColor: '#dc3545',
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    title: {
+                        display: true,
+                        text: 'Yearly Tax Collection Trends'
+                    }
+                }
+            });
+
+            // Status distribution chart
+            const statusData = processStatusData();
+            new Chart(document.getElementById('statusDistributionChart').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pending', 'Active', 'Paid'],
+                    datasets: [{
+                        data: [statusData.pending, statusData.active, statusData.paid],
+                        backgroundColor: ['#ffc107', '#007bff', '#28a745']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    title: {
+                        display: true,
+                        text: 'Tax Payment Status Distribution'
+                    }
+                }
             });
         }
+
+        // Process yearly data for charts
+        function processYearlyData() {
+            const yearlyData = {};
+            userData.forEach(user => {
+                const year = user.tax_year || new Date().getFullYear();
+                if (!yearlyData[year]) {
+                    yearlyData[year] = { collected: 0, unpaid: 0 };
+                }
+                
+                const income = parseFloat(user.income || 0);
+                const expenditure = parseFloat(user.expenditure || 0);
+                let taxOwed = parseFloat(user.tax_owed || 0);
+                
+                // Calculate tax owed if not already set
+                if (!user.tax_owed) {
+                    const taxableIncome = Math.max(0, income - expenditure);
+                    taxOwed = calculateNigeriaTax(taxableIncome);
+                }
+                
+                const taxPaid = parseFloat(user.tax_paid || 0);
+                const remainingTax = Math.max(0, taxOwed - taxPaid);
+                
+                yearlyData[year].collected += taxPaid;
+                yearlyData[year].unpaid += remainingTax;
+            });
+
+            const years = Object.keys(yearlyData).sort();
+            return {
+                years,
+                collected: years.map(year => yearlyData[year].collected),
+                unpaid: years.map(year => yearlyData[year].unpaid)
+            };
+        }
+
+        // Process status data for charts
+        function processStatusData() {
+            return {
+                pending: userData.filter(user => !user.status || user.status === 'pending').length,
+                active: userData.filter(user => user.status === 'active').length,
+                paid: userData.filter(user => user.status === 'paid').length
+            };
+        }
+
+        // Show selected panel
+        function showPanel(panelId) {
+            document.querySelectorAll('.panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.getElementById(`${panelId}Panel`).classList.add('active');
+            document.querySelector(`.tab[onclick="showPanel('${panelId}')"]`).classList.add('active');
+            
+            if (panelId === 'analytics') {
+                updateAnalytics();
+                initializeCharts();
+            }
+        }
+
+        // Initialize the dashboard when the page loads
+        document.addEventListener('DOMContentLoaded', initializeDashboard);
     </script>
 </body>
 </html> 

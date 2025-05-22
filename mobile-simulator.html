@@ -1,0 +1,105 @@
+<div class="simulator-container">
+    <!-- ... existing code ... -->
+    <div class="command-section">
+        <input type="text" id="commandInput" placeholder="Enter command (e.g., TAX, RETURN 2022)">
+        <button onclick="sendCommand()">Send</button>
+    </div>
+    <div class="response-section">
+        <pre id="responseOutput"></pre>
+    </div>
+</div>
+
+<script>
+    const MOCK_SERVER_URL = 'http://localhost:5000';
+    let currentPhoneNumber = null;
+
+    async function sendCommand() {
+        const command = document.getElementById('commandInput').value.trim();
+        if (!command) return;
+
+        if (!currentPhoneNumber) {
+            alert('Please login first');
+            return;
+        }
+
+        const [cmd, ...args] = command.split(' ');
+        const year = args.length ? parseInt(args[0]) : null;
+
+        try {
+            let response;
+            if (cmd.toUpperCase() === 'TAX') {
+                response = await handleTaxCommand(currentPhoneNumber, year);
+            } else if (cmd.toUpperCase() === 'RETURN') {
+                response = await handleReturnCommand(currentPhoneNumber, year);
+            } else {
+                response = 'Invalid command';
+            }
+
+            document.getElementById('responseOutput').textContent = response;
+        } catch (error) {
+            document.getElementById('responseOutput').textContent = `Error: ${error.message}`;
+        }
+    }
+
+    async function handleTaxCommand(phoneNumber, year) {
+        try {
+            const response = await fetch(`${MOCK_SERVER_URL}/tax/${phoneNumber}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ year: year || new Date().getFullYear() })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to process TAX command');
+            }
+            
+            const data = await response.json();
+            if (data.status !== 'success') throw new Error(data.message);
+            
+            const taxData = data.data;
+            return `Tax Calculation:
+Income: ₦${taxData.income.toLocaleString()}
+Expenses: ₦${taxData.expenses.toLocaleString()}
+Taxable Income: ₦${taxData.taxable_income.toLocaleString()}
+Tax Owed: ₦${taxData.tax_owed.toLocaleString()}`;
+        } catch (error) {
+            throw new Error(`TAX command failed: ${error.message}`);
+        }
+    }
+
+    async function handleReturnCommand(phoneNumber, year) {
+        try {
+            const response = await fetch(`${MOCK_SERVER_URL}/return/${phoneNumber}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ year: year || new Date().getFullYear() })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to process RETURN command');
+            }
+            
+            const data = await response.json();
+            if (data.status !== 'success') throw new Error(data.message);
+            
+            const returnData = data.data;
+            return `Tax Return Status:
+Income: ₦${returnData.income.toLocaleString()}
+Expenses: ₦${returnData.expenses.toLocaleString()}
+Tax Paid: ₦${returnData.tax_paid.toLocaleString()}
+Status: ${returnData.status}`;
+        } catch (error) {
+            throw new Error(`RETURN command failed: ${error.message}`);
+        }
+    }
+
+    // ... existing login and initialization code ...
+</script> 

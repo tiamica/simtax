@@ -1,0 +1,55 @@
+// Update the user data loading function
+async function loadUserData(phoneNumber) {
+    try {
+        const response = await fetch(`${MOCK_SERVER_URL}/admin/user/${phoneNumber}`);
+        if (!response.ok) throw new Error('Failed to fetch user data');
+        
+        const data = await response.json();
+        if (data.status !== 'success') throw new Error(data.message);
+        
+        displayUserData(data.data);
+    } catch (error) {
+        console.error('Error loading user data:', error);
+        alert('Failed to load user data: ' + error.message);
+    }
+}
+
+// Update the tax calculation function
+async function calculateTax(phoneNumber, year) {
+    try {
+        const response = await fetch(`${MOCK_SERVER_URL}/calculate-tax/${phoneNumber}/${year}`);
+        if (!response.ok) throw new Error('Failed to calculate tax');
+        
+        const data = await response.json();
+        if (data.status !== 'success') throw new Error(data.message);
+        
+        displayTaxCalculation(data.data);
+    } catch (error) {
+        console.error('Error calculating tax:', error);
+        alert('Failed to calculate tax: ' + error.message);
+    }
+}
+
+// Update the user data update function
+async function updateUserData(phoneNumber, year, updates) {
+    try {
+        const response = await fetch(`${MOCK_SERVER_URL}/user/${phoneNumber}/year/${year}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updates)
+        });
+        
+        if (!response.ok) throw new Error('Failed to update user data');
+        
+        const data = await response.json();
+        if (data.status !== 'success') throw new Error(data.message);
+        
+        alert('User data updated successfully');
+        loadUserData(phoneNumber);
+    } catch (error) {
+        console.error('Error updating user data:', error);
+        alert('Failed to update user data: ' + error.message);
+    }
+} 

@@ -140,6 +140,11 @@ class TaxApp:
         if not user:
             return "Please register first using REG <TIN>"
         
+        # Validate year
+        current_year = datetime.datetime.now().year
+        if not (2019 <= int(year) <= current_year + 1):  # Allow one year in future
+            return "Invalid year. Please enter a year between 2019 and " + str(current_year + 1)
+        
         return_data = self.yearly_returns.get((phone_number, year), {
             'income': 0,
             'expenses': 0,

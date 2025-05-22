@@ -3,346 +3,662 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mobile Simulator</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Tax App Mobile Simulator</title>
     <style>
-        .phone-simulator {
-            width: 375px;
-            height: 667px;
-            border: 16px solid #333;
-            border-radius: 36px;
-            background-color: #f8f9fa;
-            box-shadow: 0 0 20px rgba(0,0,0,0.2);
-            position: relative;
-            margin: 2rem auto;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .simulator-container {
+            width: 360px;
+            height: 640px;
+            background-color: white;
+            border-radius: 20px;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .phone-screen {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .phone-header {
-            text-align: center;
-            padding: 10px;
-            background-color: var(--primary-color);
-            color: white;
-            margin: -20px -20px 20px -20px;
-        }
-
-        .message-container {
-            flex: 1;
-            overflow-y: auto;
-            padding-bottom: 80px; /* Space for input */
-        }
-
-        .message {
-            max-width: 80%;
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 8px;
-            word-wrap: break-word;
             position: relative;
-        }
-
-        .user-message {
-            background-color: var(--primary-color);
-            color: white;
-            margin-left: auto;
-        }
-
-        .system-message {
-            background-color: #e9ecef;
-            color: var(--text-color);
-            margin-right: auto;
-        }
-
-        .input-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: white;
-            padding: 20px;
-            border-top: 1px solid #ddd;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            align-items: center;
         }
 
-        .input-container input {
-            width: 80%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            font-size: 1rem;
-            min-height: 48px;
-        }
-
-        .input-container button {
-            width: 80%;
-            padding: 12px;
-            border-radius: 12px;
-            background-color: var(--primary-color);
+        .app-header {
+            background-color: #007bff;
             color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-
-        .input-prompt {
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 8px;
-            padding: 0 4px;
+            padding: 1rem;
             text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        .timestamp {
-            font-size: 0.75rem;
-            color: #666;
-            margin-top: 4px;
-        }
-
-        .phone-number-input {
+        .app-header-content {
             display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-top: 8px;
+            justify-content: space-between;
             align-items: center;
-            width: 80%;
-            margin-left: auto;
-            margin-right: auto;
         }
 
-        .phone-number-input input {
+        .login-section {
+            padding: 1.5rem;
+            background-color: white;
+            border-bottom: 1px solid #eee;
+        }
+
+        .login-section.logged-in {
+            background-color: #e8f4ff;
+            color: #007bff;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .command-section {
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+
+        .response-section {
+            flex: 1;
+            padding: 1rem;
+            background-color: white;
+            overflow-y: auto;
+        }
+
+        .message-bubble {
+            max-width: 80%;
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .message-sent {
+            background-color: #007bff;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message-received {
+            background-color: #f0f2f5;
+            color: #1c1e21;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+
+        input {
             width: 100%;
-            padding: 8px;
+            padding: 0.8rem;
             border: 1px solid #ddd;
-            border-radius: 6px;
+            border-radius: 25px;
             font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: #007bff;
+        }
+
+        button {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 0.5rem;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .command-input-container {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .command-input-container input {
+            flex: 1;
+        }
+
+        .command-input-container button {
+            width: auto;
+            padding: 0.8rem 1.2rem;
+            margin-top: 0;
+        }
+
+        .help-text {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.5rem;
             text-align: center;
         }
 
-        .phone-number-input button {
+        .status-bar {
+            background-color: #0056b3;
+            color: white;
+            padding: 0.3rem;
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        .logout-btn {
             width: 50%;
-            padding: 6px 12px;
-            border-radius: 6px;
-            background-color: var(--primary-color);
+            padding: 0.8rem;
+            background-color: #007bff;
             color: white;
             border: none;
-            cursor: pointer;
+            border-radius: 25px;
             font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 0.5rem;
+        }
+
+        .logout-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .header-logo {
+            height: 40px;
+            margin-right: 1rem;
+            vertical-align: middle;
+        }
+
+        .app-header {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background-color: white;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 1rem;
+        }
+
+        .app-header img {
+            height: 40px;
+            margin-right: 1rem;
+        }
+
+        .app-header h1 {
+            margin: 0;
+            color: #333;
+            font-size: 1.5rem;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="phone-simulator">
-            <div class="phone-header">
-                <h3>TaxApp Simulator</h3>
-                <div class="phone-number-input">
-                    <input type="text" id="phoneNumberInput" placeholder="Enter your phone number" value="simulator">
-                    <button onclick="updatePhoneNumber()">Set</button>
-                </div>
+    <div class="simulator-container">
+        <div class="status-bar">
+            <span id="currentTime">12:00</span>
+            <span>📱 4G</span>
+            <span>🔋 100%</span>
+        </div>
+        <div class="app-header">
+            <img src="Fourier-Analytics-Logo.png" alt="Fourier Analytics Logo">
+            <h1>Tax Mobile App</h1>
+            <button onclick="logout()" class="logout-btn" id="logoutBtn" style="display: none;">Logout</button>
+        </div>
+        <div class="login-section" id="loginSection">
+            <input type="text" id="phoneNumber" placeholder="Enter phone number (e.g., 2348012345678)">
+            <button onclick="login()">Login</button>
+        </div>
+        <div class="response-section" id="chatContainer">
+            <div class="message-received">
+                Welcome to Tax App! Please login with your phone number to continue.
             </div>
-            <div class="phone-screen">
-                <div id="messageContainer" class="message-container">
-                    <div class="message system-message">
-                        Welcome to TaxApp! Type your shortcode commands here.
-                        <div class="timestamp">System</div>
-                    </div>
-                </div>
-                <div class="input-container">
-                    <div class="input-prompt">
-                        Example: <code>REG 123456789</code> or <code>INC 500000</code>
-                    </div>
-                    <input type="text" id="shortcodeInput" placeholder="Type your shortcode command..." autocomplete="off">
-                    <button onclick="sendShortcode()">Send Command</button>
-                </div>
+        </div>
+        <div class="command-section">
+            <div class="command-input-container">
+                <input type="text" id="commandInput" placeholder="Type a command..." disabled>
+                <button onclick="sendCommand()">Send</button>
+            </div>
+            <div class="help-text">
+                Commands:<br>
+                REG TIN123456 - Register with TIN<br>
+                INC 5000 - Add income<br>
+                EXP 2000 - Add expenditure<br>
+                YEAR 2023 - Set tax year<br>
+                TAX - View tax calculation<br>
+                RETURN - Check tax return status<br>
+                PAY 1000 - Make tax payment
             </div>
         </div>
     </div>
+
     <script>
-        const messageContainer = document.getElementById('messageContainer');
-        const shortcodeInput = document.getElementById('shortcodeInput');
-        let currentPhoneNumber = 'simulator';
+        const MOCK_SERVER_URL = 'http://192.168.1.159:5000';
+        let currentPhoneNumber = null;
+        let currentTaxYear = new Date().getFullYear(); // Track the current tax year
 
-        function getCurrentTime() {
+        // Update status bar time
+        function updateTime() {
             const now = new Date();
-            return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('currentTime').textContent = 
+                now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
         }
+        setInterval(updateTime, 1000);
+        updateTime();
 
-        function addMessage(message, isUser = true) {
+        // Initialize event listeners when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add keyboard event listener for command input
+            document.getElementById('commandInput').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    sendCommand();
+                }
+            });
+
+            // Add keyboard event listener for phone number input
+            document.getElementById('phoneNumber').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    login();
+                }
+            });
+        });
+
+        function addMessage(message, isSent = false) {
+            const chatContainer = document.getElementById('chatContainer');
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user-message' : 'system-message'}`;
-            messageDiv.innerHTML = `
-                ${message}
-                <div class="timestamp">${isUser ? 'You' : 'System'} • ${getCurrentTime()}</div>
-            `;
-            messageContainer.appendChild(messageDiv);
-            messageContainer.scrollTop = messageContainer.scrollHeight;
+            messageDiv.className = `message-bubble ${isSent ? 'message-sent' : 'message-received'}`;
+            messageDiv.textContent = message;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
-        function updatePhoneNumber() {
-            const phoneInput = document.getElementById('phoneNumberInput');
-            const newNumber = phoneInput.value.trim();
-            if (newNumber) {
-                currentPhoneNumber = newNumber;
-                addMessage(`Phone number updated to: ${currentPhoneNumber}`, false);
+        function logout() {
+            currentPhoneNumber = null;
+            currentTaxYear = new Date().getFullYear(); // Reset tax year to current year
+            
+            // Reset login section
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('loginSection').innerHTML = `
+                <input type="text" id="phoneNumber" placeholder="Enter phone number (e.g., 2348012345678)">
+                <button onclick="login()">Login</button>
+            `;
+            
+            // Hide logout button
+            document.getElementById('logoutBtn').style.display = 'none';
+            
+            // Clear phone number input
+            document.getElementById('phoneNumber').value = '';
+            
+            // Disable command input
+            document.getElementById('commandInput').disabled = true;
+            document.getElementById('commandInput').value = '';
+            
+            // Reset chat container to welcome message
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.innerHTML = '<div class="message-received">Welcome to Tax App! Please login with your phone number to continue.</div>';
+        }
+
+        // Nigerian tax calculation function
+        function calculate_nigeria_tax(taxable_income) {
+            const TAX_RATES = [
+                { threshold: 300000, rate: 0.07 },  // First 300,000 at 7%
+                { threshold: 300000, rate: 0.11 },  // Next 300,000 at 11%
+                { threshold: 500000, rate: 0.15 },  // Next 500,000 at 15%
+                { threshold: 500000, rate: 0.19 },  // Next 500,000 at 19%
+                { threshold: 1600000, rate: 0.21 }, // Next 1,600,000 at 21%
+                { threshold: 3200000, rate: 0.24 }  // Above 3,200,000 at 24%
+            ];
+            
+            let tax = 0;
+            let remaining_income = taxable_income;
+            
+            for (const { threshold, rate } of TAX_RATES) {
+                if (remaining_income <= 0) break;
+                const amount = Math.min(threshold, remaining_income);
+                tax += amount * rate;
+                remaining_income -= amount;
+            }
+            
+            // Apply 24% for any amount above the last threshold
+            if (remaining_income > 0) {
+                tax += remaining_income * 0.24;
+            }
+            
+            return tax;
+        }
+
+        async function login() {
+            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            if (!phoneNumber || !/^\d{10,}$/.test(phoneNumber)) {
+                addMessage('Please enter a valid phone number');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${MOCK_SERVER_URL}/admin/user/${phoneNumber}`);
+                
+                if (response.status === 404) {
+                    // User not found, show registration message
+                    currentPhoneNumber = phoneNumber;
+                    document.getElementById('loginSection').innerHTML = 
+                        `<div class="logged-in">Phone number: ${phoneNumber}</div>`;
+                    document.getElementById('commandInput').disabled = false;
+                    document.getElementById('logoutBtn').style.display = 'block';
+                    addMessage(`Welcome! Please register using the REG command followed by your TIN number (e.g., REG TIN123456)`);
+                    addMessage(`Current tax year is set to: ${currentTaxYear}. Use YEAR command to change it.`);
+                    return;
+                }
+
+                if (!response.ok) throw new Error('Login failed');
+
+                const data = await response.json();
+                if (data.status === 'success') {
+                    currentPhoneNumber = phoneNumber;
+                    document.getElementById('loginSection').innerHTML = 
+                        `<div class="logged-in">Logged in as ${phoneNumber}</div>`;
+                    document.getElementById('commandInput').disabled = false;
+                    document.getElementById('logoutBtn').style.display = 'block';
+                    addMessage(`Welcome back ${phoneNumber}! You can now use the available commands.`);
+                    addMessage(`Current tax year is set to: ${currentTaxYear}. Use YEAR command to change it.`);
+                }
+            } catch (error) {
+                addMessage('Failed to login: ' + error.message);
             }
         }
 
-        async function sendShortcode() {
-            const message = shortcodeInput.value.trim();
-            if (!message) return;
+        async function sendCommand() {
+            const commandInput = document.getElementById('commandInput');
+            const command = commandInput.value.trim();
+            if (!command) return;
 
-            addMessage(message, true);
-            shortcodeInput.value = '';
-            shortcodeInput.focus();
+            if (!currentPhoneNumber) {
+                addMessage('Please login first');
+                return;
+            }
+
+            addMessage(command, true);
+            commandInput.value = '';
 
             try {
-                // Handle registration separately to show tax code
-                if (message.toUpperCase().startsWith("REG")) {
-                    const response = await fetch('http://localhost:5000/send', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            phone_number: currentPhoneNumber,
-                            message: message
-                        })
-                    });
+                const [cmd, ...args] = command.split(' ');
+                let response;
 
-                    const data = await response.json();
-                    if (data.status === 'message received') {
-                        // Get the registration response
-                        const statusResponse = await fetch(`http://localhost:5000/status/${currentPhoneNumber}`);
-                        const statusData = await statusResponse.json();
-                        if (statusData.tax_code) {
-                            addMessage(`Registration successful! Your tax code is ${statusData.tax_code}`, false);
+                switch(cmd.toUpperCase()) {
+                    case 'REG':
+                        response = await sendMessage(currentPhoneNumber, command);
+                        break;
+                    case 'INC':
+                    case 'EXP':
+                        // Append the year to the command if not already specified
+                        if (args.length === 1) {
+                            response = await sendMessage(currentPhoneNumber, `${cmd} ${args[0]} ${currentTaxYear}`);
                         } else {
-                            addMessage('Registration successful!', false);
+                            response = await sendMessage(currentPhoneNumber, command);
                         }
-                    } else {
-                        addMessage('Error processing registration', false);
-                    }
-                    return;
+                        break;
+                    case 'YEAR':
+                        response = await handleYearCommand(args[0]);
+                        break;
+                    case 'TAX':
+                        response = await handleTaxCommand(currentPhoneNumber, args[0] || currentTaxYear);
+                        break;
+                    case 'RETURN':
+                        response = await handleReturnCommand(currentPhoneNumber, args[0] || currentTaxYear);
+                        break;
+                    case 'PAY':
+                        if (!args[0]) {
+                            throw new Error('Payment amount required');
+                        }
+                        response = await handlePayCommand(currentPhoneNumber, args[0], args[1] || currentTaxYear);
+                        break;
+                    default:
+                        throw new Error('Invalid command');
                 }
 
-                // Handle tax calculation separately
-                if (message.toUpperCase().startsWith("TAX")) {
-                    const statusResponse = await fetch(`http://localhost:5000/status/${currentPhoneNumber}`);
-                    const statusData = await statusResponse.json();
-                    
-                    if (statusData.status) {
-                        const income = parseFloat(statusData.status.match(/Income: ₦([\d,]+)/)[1].replace(/,/g, ''));
-                        const expenses = parseFloat(statusData.status.match(/Expenses: ₦([\d,]+)/)[1].replace(/,/g, ''));
-                        const payments = parseFloat(statusData.status.match(/Payments: ₦([\d,]+)/)[1].replace(/,/g, ''));
-                        const taxable_income = income - expenses;
+                addMessage(formatResponse(response));
+            } catch (error) {
+                addMessage(`Error: ${error.message}`);
+            }
+        }
 
-                        const taxResponse = await fetch('http://localhost:5000/calculate-tax', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                taxable_income: taxable_income
-                            })
-                        });
+        async function sendMessage(phoneNumber, message) {
+            const response = await fetch(`${MOCK_SERVER_URL}/send`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    phone_number: phoneNumber,
+                    message: message
+                })
+            });
 
-                        const taxData = await taxResponse.json();
-                        if (taxData.tax) {
-                            const taxDue = Math.max(0, taxData.tax - payments);
-                            addMessage(`Your tax calculation:\n` +
-                                    `Taxable Income: ₦${taxable_income.toLocaleString()}\n` +
-                                    `Total Tax: ₦${taxData.tax.toLocaleString()}\n` +
-                                    `Tax Paid: ₦${payments.toLocaleString()}\n` +
-                                    `Tax Due: ₦${taxDue.toLocaleString()}`, false);
-                        } else {
-                            addMessage('Error calculating tax', false);
-                        }
-                    } else {
-                        addMessage('Please record income and expenses first', false);
-                    }
-                    return;
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to send message');
+            }
+
+            const data = await response.json();
+            
+            // If this was a successful registration, update the UI
+            if (message.toUpperCase().startsWith('REG') && data.status === 'success') {
+                document.getElementById('loginSection').innerHTML = 
+                    `<div class="logged-in">Logged in as ${phoneNumber}</div>`;
+                addMessage('Registration successful! You can now use other commands.');
+            }
+
+            return data;
+        }
+
+        async function handleYearCommand(yearArg) {
+            if (!yearArg) {
+                return {
+                    status: 'success',
+                    message: `Current tax year is set to: ${currentTaxYear}`
+                };
+            }
+
+            const year = parseInt(yearArg);
+            const currentYear = new Date().getFullYear();
+            
+            // Validate that the year is reasonable (not too far in the past or future)
+            if (isNaN(year) || year < 2019 || year > currentYear + 1) {
+                throw new Error(`Invalid year. Please enter a year between 2019 and ${currentYear + 1}`);
+            }
+            
+            // Update the current tax year
+            currentTaxYear = year;
+            
+            return {
+                status: 'success',
+                message: `Tax year successfully set to: ${year}`
+            };
+        }
+
+        async function handleTaxCommand(phoneNumber, year) {
+            const response = await fetch(`${MOCK_SERVER_URL}/tax/${phoneNumber}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    year: year || currentTaxYear
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to get tax information');
+            }
+
+            const responseData = await response.json();
+            
+            // Ensure we have tax_owed calculated correctly
+            if (responseData.status === 'success' && responseData.data) {
+                const data = responseData.data;
+                const income = parseFloat(data.income || 0);
+                const expenses = parseFloat(data.expenses || data.expenditure || 0);
+                const taxable_income = Math.max(0, income - expenses);
+                
+                // Calculate tax owed if not already in the response
+                if (!data.tax_owed) {
+                    data.tax_owed = calculate_nigeria_tax(taxable_income);
                 }
+            }
 
-                // Handle all other commands
-                const response = await fetch('http://localhost:5000/send', {
+            return responseData;
+        }
+
+        async function handleReturnCommand(phoneNumber, year) {
+            const response = await fetch(`${MOCK_SERVER_URL}/return/${phoneNumber}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    year: year || currentTaxYear
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to get return information');
+            }
+
+            return await response.json();
+        }
+
+        async function handlePayCommand(phoneNumber, amount, year) {
+            const response = await fetch(`${MOCK_SERVER_URL}/pay-tax/${phoneNumber}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    amount: parseFloat(amount),
+                    year: year || currentTaxYear
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to process payment');
+            }
+
+            return await response.json();
+        }
+
+        function formatResponse(response) {
+            if (response.status === 'success') {
+                if (response.message) {
+                    // For simple message responses (like INC and EXP), detect and format those to include year
+                    if (response.message.includes('Income of ₦') || response.message.includes('Expense of ₦')) {
+                        return `${response.message} (Tax Year: ${currentTaxYear})`;
+                    }
+                    return response.message;
+                }
+                if (response.data) {
+                    const data = response.data;
+                    if (data.income !== undefined) {
+                        const taxOwed = parseFloat(data.tax_owed || 0);
+                        const taxPaid = parseFloat(data.tax_paid || 0);
+                        const remainingTax = Math.max(0, taxOwed - taxPaid);
+                        
+                        // Calculate status based on tax paid vs tax owed
+                        let status = 'pending';
+                        if (taxPaid >= taxOwed && taxOwed > 0) {
+                            status = 'paid';
+                        } else if (taxPaid > 0) {
+                            status = 'active';
+                        }
+                        
+                        return `Tax Year: ${data.year || currentTaxYear}
+Income: ₦${parseFloat(data.income).toLocaleString()}
+Expenses: ₦${parseFloat(data.expenses || data.expenditure || 0).toLocaleString()}
+Total Tax Owed: ₦${taxOwed.toLocaleString()}
+${data.tax_paid ? `Tax Paid: ₦${taxPaid.toLocaleString()}` : ''}
+Remaining Tax: ₦${remainingTax.toLocaleString()}
+Status: ${status}`;
+                    }
+                    if (data.amount_paid !== undefined) {
+                        return `Payment Processed:
+Tax Year: ${data.year || currentTaxYear}
+Amount Paid: ₦${parseFloat(data.amount_paid).toLocaleString()}
+Total Paid: ₦${parseFloat(data.total_paid).toLocaleString()}
+Total Tax: ₦${parseFloat(data.total_tax).toLocaleString()}
+Remaining Tax: ₦${parseFloat(data.remaining_tax).toLocaleString()}
+Status: ${data.status}`;
+                    }
+                }
+                return JSON.stringify(response.data, null, 2);
+            }
+            return `Error: ${response.error || 'Unknown error'}`;
+        }
+
+        async function processMessage(phoneNumber, message) {
+            try {
+                const response = await fetch(`${MOCK_SERVER_URL}/send`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        phone_number: currentPhoneNumber,
+                        phone_number: phoneNumber,
                         message: message
                     })
                 });
 
                 const data = await response.json();
-                if (data.status === 'message received') {
-                    // Get the command response
-                    const statusResponse = await fetch(`http://localhost:5000/status/${currentPhoneNumber}`);
-                    const statusData = await statusResponse.json();
+                
+                if (data.status === 'success') {
+                    // Update the display with the new tax information
+                    const taxInfo = data.data;
+                    const taxOwed = parseFloat(taxInfo.tax_owed || 0);
+                    const taxPaid = parseFloat(taxInfo.tax_paid || 0);
+                    const remainingTax = Math.max(0, taxOwed - taxPaid);
                     
-                    // Handle specific commands
-                    if (message.toUpperCase().startsWith("INC")) {
-                        addMessage(`Income recorded successfully`, false);
-                    } else if (message.toUpperCase().startsWith("EXP")) {
-                        addMessage(`Expense recorded successfully`, false);
-                    } else if (message.toUpperCase().startsWith("PAY")) {
-                        addMessage(`Payment processed successfully`, false);
-                    } else if (message.toUpperCase().startsWith("CODE")) {
-                        if (statusData.tax_code) {
-                            addMessage(`Your tax code is: ${statusData.tax_code}`, false);
-                        } else {
-                            addMessage('Tax code not found', false);
-                        }
-                    } else if (message.toUpperCase().startsWith("STATUS")) {
-                        if (statusData.status) {
-                            addMessage(statusData.status, false);
-                        } else {
-                            addMessage('Status not available', false);
-                        }
-                    } else if (message.toUpperCase().startsWith("RETURN")) {
-                        const year = message.split(' ')[1];
-                        const returnResponse = await fetch(`http://localhost:5000/status/${currentPhoneNumber}/${year}`);
-                        const returnData = await returnResponse.json();
-                        if (returnData.data) {
-                            addMessage(`Tax return for ${year}:\n${returnData.data}`, false);
-                        } else {
-                            addMessage('No return data found', false);
-                        }
-                    } else {
-                        addMessage('Command processed successfully', false);
+                    // Update the status based on the new values
+                    let status = 'pending';
+                    if (taxPaid >= taxOwed) {
+                        status = 'paid';
+                    } else if (taxPaid > 0) {
+                        status = 'active';
                     }
-                } else {
-                    addMessage('Error processing your request', false);
+                    
+                    // Update the display
+                    document.getElementById('taxOwed').textContent = `₦${taxOwed.toLocaleString()}`;
+                    document.getElementById('taxPaid').textContent = `₦${taxPaid.toLocaleString()}`;
+                    document.getElementById('remainingTax').textContent = `₦${remainingTax.toLocaleString()}`;
+                    document.getElementById('taxStatus').textContent = status;
+                    document.getElementById('taxStatus').className = `status-badge status-${status}`;
+                    
+                    // Show/hide payment section based on remaining tax
+                    const paymentSection = document.getElementById('paymentSection');
+                    paymentSection.style.display = remainingTax > 0 ? 'block' : 'none';
                 }
+                
+                return data;
             } catch (error) {
-                addMessage('Error: Could not connect to the server', false);
+                console.error('Error processing message:', error);
+                return {
+                    status: 'error',
+                    message: 'Failed to process message'
+                };
             }
         }
-
-        // Handle Enter key
-        shortcodeInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendShortcode();
-            }
-        });
-
-        // Auto-focus input on page load
-        shortcodeInput.focus();
     </script>
 </body>
 </html> 
