@@ -3,25 +3,423 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tax Account Login</title>
+    <title>SIMTAX - Simplified Tax Management System</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Landing page specific styles */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #0056b3, #003580);
+            --card-hover-transform: translateY(-5px);
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        
+        .landing-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .logo-container img {
+            height: 60px;
+            margin-right: 1rem;
+        }
+        
+        .logo-container h1 {
+            font-size: 2.5rem;
+            margin: 0;
+            color: white;
+        }
+        
+        .header-text {
+            max-width: 800px;
+            margin-bottom: 2rem;
+        }
+        
+        .header-text h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: white;
+        }
+        
+        .header-text p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+        
+        .apps-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .app-card {
+            background-color: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .app-card:hover {
+            transform: var(--card-hover-transform);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .app-card-image {
+            height: 180px;
+            background-color: #e9ecef;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #495057;
+            font-size: 4rem;
+        }
+        
+        .app-card-content {
+            padding: 1.5rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .app-card-content h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #0056b3;
+        }
+        
+        .app-card-content p {
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+            color: #495057;
+            flex-grow: 1;
+        }
+        
+        .app-card-btn {
+            display: block;
+            background-color: #0056b3;
+            color: white;
+            text-align: center;
+            padding: 0.8rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+        
+        .app-card-btn:hover {
+            background-color: #004080;
+        }
+        
+        .footer {
+            background-color: #343a40;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .footer p {
+            margin: 0;
+            opacity: 0.8;
+        }
+        
+        /* Admin login modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .modal-header {
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: #0056b3;
+        }
+        
+        .modal-form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .modal-form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .modal-form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+        
+        .modal-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+        }
+        
+        .modal-actions button {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            width: 48%;
+        }
+        
+        .modal-actions .cancel-btn {
+            background-color: #e9ecef;
+            color: #212529;
+        }
+        
+        .modal-actions .login-btn {
+            background-color: #0056b3;
+            color: white;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .header-content {
+                padding: 1.5rem;
+            }
+            
+            .logo-container h1 {
+                font-size: 2rem;
+            }
+            
+            .header-text h2 {
+                font-size: 1.5rem;
+            }
+            
+            .header-text p {
+                font-size: 1rem;
+            }
+            
+            .apps-container {
+                padding: 2rem 1rem;
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <div class="form-container">
-            <h1 data-i18n="welcome">Welcome to TaxApp</h1>
-            <p data-i18n="enterPhone">Please enter your phone number to access your tax account</p>
-            <form id="loginForm">
-                <label for="phoneNumber" data-i18n="phoneNumber">Phone Number:</label>
-                <input type="text" id="phoneNumber" name="phoneNumber" required
-                       placeholder="Enter your phone number" data-i18n-placeholder="phoneNumberPlaceholder">
-                <button type="submit" data-i18n="viewAccount">View Account</button>
-            </form>
-            <div id="error" class="error"></div>
+    <header class="landing-header">
+        <div class="header-content">
+            <div class="logo-container">
+                <img src="Fourier-Analytics-Logo.png" alt="Fourier Analytics Logo">
+                <h1>SIMTAX</h1>
+            </div>
+            <div class="header-text">
+                <h2 data-i18n="landingTagline">Simplified Tax Management System</h2>
+                <p data-i18n="landingDescription">Experience a modern approach to tax management with our simplified platform. Access your tax information, make payments, and track your history through multiple interfaces designed for your convenience.</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="apps-container">
+        <div class="app-card">
+            <div class="app-card-image">
+                <span>💻</span>
+            </div>
+            <div class="app-card-content">
+                <h3 data-i18n="webAppTitle">Web Application</h3>
+                <p data-i18n="webAppDescription">Access your tax account through our full-featured web application. View your tax summaries, payment history, and make new payments easily from any browser.</p>
+                <a href="account.html" class="app-card-btn" data-i18n="launchWebApp">Launch Web App</a>
+            </div>
+        </div>
+        
+        <div class="app-card">
+            <div class="app-card-image">
+                <span>📱</span>
+            </div>
+            <div class="app-card-content">
+                <h3 data-i18n="mobileSimulatorTitle">Mobile Simulator</h3>
+                <p data-i18n="mobileSimulatorDescription">Experience how our tax management system works on mobile devices. This simulator demonstrates the SMS-based interface available for feature phones.</p>
+                <a href="mobile-simulator.html" class="app-card-btn" data-i18n="launchMobileSimulator">Launch Mobile Simulator</a>
+            </div>
+        </div>
+        
+        <div class="app-card">
+            <div class="app-card-image">
+                <span>🔒</span>
+            </div>
+            <div class="app-card-content">
+                <h3 data-i18n="adminPanelTitle">Admin Panel</h3>
+                <p data-i18n="adminPanelDescription">Authorized personnel can access the administrative dashboard to manage user accounts, view tax records, and generate reports for analytical purposes.</p>
+                <a href="#" class="app-card-btn" id="adminLoginBtn" data-i18n="accessAdminPanel">Access Admin Panel</a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <p data-i18n="footerText">© 2023 Fourier Analytics - SIMTAX Demonstration Platform</p>
+    </footer>
+
+    <!-- Admin Login Modal -->
+    <div class="modal" id="adminLoginModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 data-i18n="adminLogin">Admin Login</h3>
+            </div>
+            <div id="adminLoginError" class="error-message" style="display: none;"></div>
+            <div class="modal-form-group">
+                <label for="adminUsername" data-i18n="username">Username:</label>
+                <input type="text" id="adminUsername" data-i18n-placeholder="enterUsername" placeholder="Enter username">
+            </div>
+            <div class="modal-form-group">
+                <label for="adminPassword" data-i18n="password">Password:</label>
+                <input type="password" id="adminPassword" data-i18n-placeholder="enterPassword" placeholder="Enter password">
+            </div>
+            <div class="modal-actions">
+                <button class="cancel-btn" id="cancelAdminLogin" data-i18n="cancel">Cancel</button>
+                <button class="login-btn" id="submitAdminLogin" data-i18n="login">Login</button>
+            </div>
         </div>
     </div>
+
     <script src="translations.js"></script>
     <script src="language-switcher.js"></script>
-    <script src="scripts.js"></script>
+    <script>
+        // Add translations for new elements
+        if (!translations.en.landingTagline) {
+            for (const lang in translations) {
+                translations[lang].landingTagline = translations[lang].landingTagline || "Simplified Tax Management System";
+                translations[lang].landingDescription = translations[lang].landingDescription || "Experience a modern approach to tax management with our simplified platform. Access your tax information, make payments, and track your history through multiple interfaces designed for your convenience.";
+                translations[lang].webAppTitle = translations[lang].webAppTitle || "Web Application";
+                translations[lang].webAppDescription = translations[lang].webAppDescription || "Access your tax account through our full-featured web application. View your tax summaries, payment history, and make new payments easily from any browser.";
+                translations[lang].mobileSimulatorTitle = translations[lang].mobileSimulatorTitle || "Mobile Simulator";
+                translations[lang].mobileSimulatorDescription = translations[lang].mobileSimulatorDescription || "Experience how our tax management system works on mobile devices. This simulator demonstrates the SMS-based interface available for feature phones.";
+                translations[lang].adminPanelTitle = translations[lang].adminPanelTitle || "Admin Panel";
+                translations[lang].adminPanelDescription = translations[lang].adminPanelDescription || "Authorized personnel can access the administrative dashboard to manage user accounts, view tax records, and generate reports for analytical purposes.";
+                translations[lang].launchWebApp = translations[lang].launchWebApp || "Launch Web App";
+                translations[lang].launchMobileSimulator = translations[lang].launchMobileSimulator || "Launch Mobile Simulator";
+                translations[lang].accessAdminPanel = translations[lang].accessAdminPanel || "Access Admin Panel";
+                translations[lang].footerText = translations[lang].footerText || "© 2023 Fourier Analytics - SIMTAX Demonstration Platform";
+                translations[lang].adminLogin = translations[lang].adminLogin || "Admin Login";
+                translations[lang].username = translations[lang].username || "Username:";
+                translations[lang].password = translations[lang].password || "Password:";
+                translations[lang].enterUsername = translations[lang].enterUsername || "Enter username";
+                translations[lang].enterPassword = translations[lang].enterPassword || "Enter password";
+                translations[lang].cancel = translations[lang].cancel || "Cancel";
+                translations[lang].login = translations[lang].login || "Login";
+                translations[lang].invalidCredentials = translations[lang].invalidCredentials || "Invalid username or password";
+            }
+        }
+        
+        // Admin login modal functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const adminLoginBtn = document.getElementById('adminLoginBtn');
+            const adminLoginModal = document.getElementById('adminLoginModal');
+            const cancelAdminLogin = document.getElementById('cancelAdminLogin');
+            const submitAdminLogin = document.getElementById('submitAdminLogin');
+            const adminUsername = document.getElementById('adminUsername');
+            const adminPassword = document.getElementById('adminPassword');
+            const adminLoginError = document.getElementById('adminLoginError');
+            
+            // Show the modal when admin button is clicked
+            adminLoginBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                adminLoginModal.style.display = 'flex';
+                adminUsername.focus();
+                // Clear previous input and errors
+                adminUsername.value = '';
+                adminPassword.value = '';
+                adminLoginError.style.display = 'none';
+            });
+            
+            // Hide the modal when cancel button is clicked
+            cancelAdminLogin.addEventListener('click', function() {
+                adminLoginModal.style.display = 'none';
+            });
+            
+            // Close the modal if clicking outside of it
+            adminLoginModal.addEventListener('click', function(e) {
+                if (e.target === adminLoginModal) {
+                    adminLoginModal.style.display = 'none';
+                }
+            });
+            
+            // Handle admin login submission
+            submitAdminLogin.addEventListener('click', function() {
+                const username = adminUsername.value.trim();
+                const password = adminPassword.value.trim();
+                
+                // Simple authentication check
+                if (username === 'admin' && password === 'fadmin') {
+                    // Successful login - redirect to admin page
+                    window.location.href = 'admin.html';
+                } else {
+                    // Show error message
+                    adminLoginError.textContent = translations[currentLanguage].invalidCredentials || 'Invalid username or password';
+                    adminLoginError.style.display = 'block';
+                    adminPassword.value = '';
+                    adminPassword.focus();
+                }
+            });
+            
+            // Allow pressing Enter in password field to submit
+            adminPassword.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    submitAdminLogin.click();
+                }
+            });
+        });
+    </script>
 </body>
 </html> 

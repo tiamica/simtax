@@ -34,6 +34,11 @@ function updateLanguage(lang) {
 
 // Function to create and insert the language selector
 function createLanguageSelector() {
+    // Check if a language selector already exists to prevent duplicates
+    if (document.getElementById('languageSelector')) {
+        return; // Exit if a language selector already exists
+    }
+    
     const languageContainer = document.createElement('div');
     languageContainer.className = 'language-selector-container';
     

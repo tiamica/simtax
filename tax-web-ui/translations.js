@@ -34,7 +34,31 @@ const translations = {
         failedPayment: "Failed to process payment. Please try again later.",
         enterValidTIN: "Please enter a valid TIN (at least 6 characters)",
         regSuccess: "Registration successful! You can now login.",
-        regFailed: "Registration failed: "
+        regFailed: "Registration failed: ",
+        
+        // Landing page
+        landingTagline: "Simplified Tax Management System",
+        landingDescription: "Experience a modern approach to tax management with our simplified platform. Access your tax information, make payments, and track your history through multiple interfaces designed for your convenience.",
+        webAppTitle: "Web Application",
+        webAppDescription: "Access your tax account through our full-featured web application. View your tax summaries, payment history, and make new payments easily from any browser.",
+        mobileSimulatorTitle: "Mobile Simulator",
+        mobileSimulatorDescription: "Experience how our tax management system works on mobile devices. This simulator demonstrates the SMS-based interface available for feature phones.",
+        adminPanelTitle: "Admin Panel",
+        adminPanelDescription: "Authorized personnel can access the administrative dashboard to manage user accounts, view tax records, and generate reports for analytical purposes.",
+        launchWebApp: "Launch Web App",
+        launchMobileSimulator: "Launch Mobile Simulator",
+        accessAdminPanel: "Access Admin Panel",
+        footerText: "© 2023 Fourier Analytics - SIMTAX Demonstration Platform",
+        
+        // Admin login
+        adminLogin: "Admin Login",
+        username: "Username:",
+        password: "Password:",
+        enterUsername: "Enter username",
+        enterPassword: "Enter password",
+        cancel: "Cancel",
+        login: "Login",
+        invalidCredentials: "Invalid username or password"
     },
     ig: {
         // Login page
@@ -70,7 +94,31 @@ const translations = {
         failedPayment: "Ọ gaghị enwe ike ịkwụ ụgwọ. Biko gbalịa ọzọ n'oge na-adịghị anya.",
         enterValidTIN: "Biko tinye TIN dị irè (ihe dị ka akwụkwọ 6)",
         regSuccess: "Ndebanyeaha ezutela! Ị nwere ike ịbanye ugbua.",
-        regFailed: "Ndebanyeaha agaghị adị irè: "
+        regFailed: "Ndebanyeaha agaghị adị irè: ",
+        
+        // Landing page
+        landingTagline: "Sistemụ Njikwa Ụtụ Isi Mfe",
+        landingDescription: "Nwee ahụmịhe n'usoro ọhụrụ nke njikwa ụtụ isi na platformụ anyị dị mfe. Nweta ozi ụtụ isi gị, kwụọ ụgwọ, ma chọpụta akụkọ ihe gara aga site na ọtụtụ njikọ ọdịnaya emebere maka nkasi obi gị.",
+        webAppTitle: "Ngwa Weebụ",
+        webAppDescription: "Banye na akaụntụ ụtụ isi gị site na ngwa weebụ anyị zuru ezu. Lelee nchịkọta ụtụ isi gị, akụkọ ụgwọ, ma mee nkwụnye ụgwọ ọhụrụ site na ihe nchọgharị ọ bụla.",
+        mobileSimulatorTitle: "Simulator Ekwentị",
+        mobileSimulatorDescription: "Nwee ahụmịhe ka sistemụ njikwa ụtụ isi anyị si arụ ọrụ na ngwaọrụ mkpanaka. Simulator a na-egosi ọdịdị ndị dabere na SMS dị maka ekwentị atụmatụ.",
+        adminPanelTitle: "Panel Nduzi",
+        adminPanelDescription: "Ndị ọrụ nwere ikike ịbanye na dashboard ọchịchị iji jikwaa akaụntụ ndị ọrụ, lelee akwụkwọ ụtụ isi, ma mepụta akụkọ maka ebumnuche nyocha.",
+        launchWebApp: "Malite Ngwa Weebụ",
+        launchMobileSimulator: "Malite Simulator Ekwentị",
+        accessAdminPanel: "Banye na Panel Nduzi",
+        footerText: "© 2023 Fourier Analytics - Platformụ Ngosipụta SIMTAX",
+        
+        // Admin login
+        adminLogin: "Mbanye Nduzi",
+        username: "Aha Onye Ọrụ:",
+        password: "Okwuntughe:",
+        enterUsername: "Tinye aha onye ọrụ",
+        enterPassword: "Tinye okwuntughe",
+        cancel: "Kagbuo",
+        login: "Banye",
+        invalidCredentials: "Aha onye ọrụ ma ọ bụ okwuntughe adịghị mma"
     },
     yo: {
         // Login page
@@ -106,7 +154,31 @@ const translations = {
         failedPayment: "Kuna lati san owo. Jọwọ gbiyanju lẹẹkansi nigbamii.",
         enterValidTIN: "Jọwọ tẹ TIN to dara (o kere ju iwe meta 6)",
         regSuccess: "Iforukọsilẹ ti pari! O le wọle bayi.",
-        regFailed: "Iforukọsilẹ kuna: "
+        regFailed: "Iforukọsilẹ kuna: ",
+        
+        // Landing page
+        landingTagline: "Eto Iṣakoso Owo Ori ti o Rọrun",
+        landingDescription: "Ri iriri ọna titun fun iṣakoso owo ori pẹlu ẹrọ aiwọye wa. Wọle si alaye owo ori rẹ, ṣe awọn isanwo, ati ṣe itọpa itan rẹ nipasẹ ọpọlọpọ awọn interface ti a ṣe fun irọrun rẹ.",
+        webAppTitle: "Ohun elo Wẹẹbu",
+        webAppDescription: "Wọle si account owo ori rẹ nipasẹ ohun elo wẹẹbu wa to ni gbogbo awọn ẹya. Wo awọn akopọ owo ori rẹ, itan isanwo, ati ṣe awọn isanwo titun laiṣoro lati inu eyikeyi aṣawakiri.",
+        mobileSimulatorTitle: "Awoṣe Fonu",
+        mobileSimulatorDescription: "Ri iriri bi eto iṣakoso owo ori wa ṣe n ṣiṣẹ lori awọn ẹrọ alagbeka. Awoṣe yii ṣe afihan interface ti o da lori SMS ti o wa fun awọn fonu ẹya.",
+        adminPanelTitle: "Pano Alakoso",
+        adminPanelDescription: "Awọn eniyan ti o ni aṣẹ le wọle si dashboard alakoso lati ṣakoso awọn account olumulo, wo awọn iwe owo ori, ati ṣe ipilẹṣẹ awọn ijabọ fun awọn idi iṣiro.",
+        launchWebApp: "Bẹrẹ Ohun elo Wẹẹbu",
+        launchMobileSimulator: "Bẹrẹ Awoṣe Fonu",
+        accessAdminPanel: "Wọle si Pano Alakoso",
+        footerText: "© 2023 Fourier Analytics - Ẹrọ Afihan SIMTAX",
+        
+        // Admin login
+        adminLogin: "Iwọle Alakoso",
+        username: "Orukọ Olumulo:",
+        password: "Ọrọigbaniwọle:",
+        enterUsername: "Tẹ orukọ olumulo",
+        enterPassword: "Tẹ ọrọigbaniwọle",
+        cancel: "Fagilee",
+        login: "Wọle",
+        invalidCredentials: "Orukọ olumulo tabi ọrọigbaniwọle ko tọ"
     },
     ha: {
         // Login page
@@ -142,6 +214,30 @@ const translations = {
         failedPayment: "An kasa biyan kuɗi. Da fatan za a sake gwadawa daga baya.",
         enterValidTIN: "Da fatan za a shigar da TIN mai kyau (a ƙalla haruffa 6)",
         regSuccess: "An yi nasarar rajista! Yanzu za ku iya shiga.",
-        regFailed: "Rajista ta kasa: "
+        regFailed: "Rajista ta kasa: ",
+        
+        // Landing page
+        landingTagline: "Tsarin Sarrafa Haraji Mai Sauƙi",
+        landingDescription: "Sami ƙwarewar hanyar zamani don sarrafa haraji tare da tsarinmu mai sauƙi. Samun damar bayanan haraji, biyan kuɗi, da bibiyar tarihinku ta hanyoyi daban-daban da aka tsara don dacewa da ku.",
+        webAppTitle: "Aikace-aikacen Yanar Gizo",
+        webAppDescription: "Shiga asusun haraji ta hanyar aikace-aikacen yanar gizonmu cikakke. Duba taƙaitaccen bayanan haraji, tarihin biyan kuɗi, da yi sabon biyan kuɗi da sauƙi daga kowace browsers.",
+        mobileSimulatorTitle: "Kwaikwayar Wayar Hannu",
+        mobileSimulatorDescription: "Jin daɗin yadda tsarin sarrafa haraji ke aiki a wayoyin hannu. Wannan kwaikwayar tana nuna interface ɗin SMS da ke akwai don wayoyin hannu na musamman.",
+        adminPanelTitle: "Filin Sarrafa",
+        adminPanelDescription: "Jami'an da aka yarda za su iya shiga dashboard ɗin gudanarwa don sarrafa asusun masu amfani, duba bayanan haraji, da samar da rahotanni don nazarin bayanai.",
+        launchWebApp: "Fara Aikace-aikacen Yanar Gizo",
+        launchMobileSimulator: "Fara Kwaikwayar Wayar Hannu",
+        accessAdminPanel: "Shiga Filin Sarrafa",
+        footerText: "© 2023 Fourier Analytics - Dandamali na Gwaninta SIMTAX",
+        
+        // Admin login
+        adminLogin: "Shiga na Admin",
+        username: "Sunan Mai Amfani:",
+        password: "Kalmar Sirri:",
+        enterUsername: "Shigar da sunan mai amfani",
+        enterPassword: "Shigar da kalmar sirri",
+        cancel: "Soke",
+        login: "Shiga",
+        invalidCredentials: "Sunan mai amfani ko kalmar sirri ba daidai ba"
     }
 }; 
