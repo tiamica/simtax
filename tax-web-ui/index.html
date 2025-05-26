@@ -280,7 +280,7 @@
             <div class="app-card-content">
                 <h3 data-i18n="webAppTitle">Web Application</h3>
                 <p data-i18n="webAppDescription">Access your tax account through our full-featured web application. View your tax summaries, payment history, and make new payments easily from any browser.</p>
-                <a href="account.html" class="app-card-btn" data-i18n="launchWebApp">Launch Web App</a>
+                <a href="account.html" class="app-card-btn" data-i18n="launchWebApp" target="_blank">Launch Web App</a>
             </div>
         </div>
         
@@ -291,7 +291,7 @@
             <div class="app-card-content">
                 <h3 data-i18n="mobileSimulatorTitle">Mobile Simulator</h3>
                 <p data-i18n="mobileSimulatorDescription">Experience how our tax management system works on mobile devices. This simulator demonstrates the SMS-based interface available for feature phones.</p>
-                <a href="mobile-simulator.html" class="app-card-btn" data-i18n="launchMobileSimulator">Launch Mobile Simulator</a>
+                <a href="mobile-simulator.html" class="app-card-btn" data-i18n="launchMobileSimulator" target="_blank">Launch Mobile Simulator</a>
             </div>
         </div>
         
@@ -402,8 +402,10 @@
                 
                 // Simple authentication check
                 if (username === 'admin' && password === 'fadmin') {
-                    // Successful login - redirect to admin page
-                    window.location.href = 'admin.html';
+                    // Successful login - redirect to admin page in a new tab
+                    window.open('admin.html', '_blank');
+                    // Hide the modal after successful login
+                    adminLoginModal.style.display = 'none';
                 } else {
                     // Show error message
                     adminLoginError.textContent = translations[currentLanguage].invalidCredentials || 'Invalid username or password';
