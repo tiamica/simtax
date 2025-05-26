@@ -16,6 +16,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Function to show an alert in the current language
+function showLocalizedAlert(key, additionalText = '') {
+    const lang = localStorage.getItem('taxAppLanguage') || 'en';
+    let message = translations[lang][key] || translations['en'][key];
+    if (additionalText) {
+        message += additionalText;
+    }
+    alert(message);
+}
+
 function fetchAccountData(phoneNumber) {
     // Fetch basic account information
     fetch(`http://localhost:5000/status/${encodeURIComponent(phoneNumber)}`)
@@ -56,22 +66,29 @@ function fetchAccountData(phoneNumber) {
                         const returnDiv = document.createElement('div');
                         returnDiv.className = 'return-item';
                         returnDiv.innerHTML = `
-                            <h4>${year} Tax Return</h4>
+                            <h4>${year} <span data-i18n="taxReturn">Tax Return</span></h4>
                             <pre>${JSON.stringify(returnData.data, null, 2)}</pre>
                         `;
                         returnsContainer.appendChild(returnDiv);
+                        
+                        // Apply translations to newly created elements
+                        updateLanguage(localStorage.getItem('taxAppLanguage') || 'en');
                     })
                     .catch(error => {
                         console.error(`Error fetching ${year} return:`, error);
                         const returnDiv = document.createElement('div');
                         returnDiv.className = 'return-item error';
-                        returnDiv.textContent = `Error loading ${year} tax return: ${error.message}`;
+                        
+                        const lang = localStorage.getItem('taxAppLanguage') || 'en';
+                        const errorText = translations[lang]['errorLoading'] || 'Error loading';
+                        
+                        returnDiv.textContent = `${errorText} ${year} ${translations[lang]['taxReturn']}: ${error.message}`;
                         returnsContainer.appendChild(returnDiv);
                     });
             });
         })
         .catch(error => {
             console.error('Error fetching account data:', error);
-            document.getElementById('error').textContent = `Error: ${error.message}`;
+            document.getElementById('error').textContent = `${translations[currentLanguage]['errorLoading']}: ${error.message}`;
         });
 } 

@@ -9,17 +9,19 @@
 <body>
     <div class="container">
         <div class="form-container">
-            <h1>Welcome to TaxApp</h1>
-            <p>Please enter your phone number to access your tax account</p>
+            <h1 data-i18n="welcome">Welcome to TaxApp</h1>
+            <p data-i18n="enterPhone">Please enter your phone number to access your tax account</p>
             <form id="loginForm">
-                <label for="phoneNumber">Phone Number:</label>
+                <label for="phoneNumber" data-i18n="phoneNumber">Phone Number:</label>
                 <input type="text" id="phoneNumber" name="phoneNumber" required
-                       placeholder="Enter your phone number">
-                <button type="submit">View Account</button>
+                       placeholder="Enter your phone number" data-i18n-placeholder="phoneNumberPlaceholder">
+                <button type="submit" data-i18n="viewAccount">View Account</button>
             </form>
             <div id="error" class="error"></div>
         </div>
     </div>
+    <script src="translations.js"></script>
+    <script src="language-switcher.js"></script>
     <script src="scripts.js"></script>
 </body>
 </html> 

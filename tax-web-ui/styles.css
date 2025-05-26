@@ -336,4 +336,56 @@ a:hover, button:hover {
 
 .input-container button:hover {
     background-color: var(--secondary-color);
+}
+
+/* Language Selector Styles */
+.language-selector-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0.5rem;
+    background-color: var(--background-color);
+    border-radius: var(--border-radius);
+}
+
+.language-selector-container label {
+    margin-right: 1rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.language-selector {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+    background-color: white;
+    color: var(--text-color);
+    cursor: pointer;
+    outline: none;
+    font-size: 0.9rem;
+}
+
+.language-selector:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(0,86,179,0.25);
+}
+
+.language-selector option {
+    padding: 0.5rem;
+}
+
+/* Responsive styles for language selector */
+@media (max-width: 768px) {
+    .language-selector-container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .language-selector-container label {
+        margin-bottom: 0.5rem;
+    }
+    
+    .language-selector {
+        width: 100%;
+    }
 } 

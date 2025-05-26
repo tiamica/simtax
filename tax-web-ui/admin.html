@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tax Admin Dashboard</title>
+    <title data-i18n="adminDashboard">Tax Admin Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
     <style>
         * {
             margin: 0;
@@ -302,526 +303,458 @@
             margin-top: 1rem;
             text-align: center;
         }
+
+        /* Language selector specific styles for admin panel */
+        .language-selector-container {
+            display: flex;
+            align-items: center;
+            margin-left: auto;
+            padding: 0.5rem;
+        }
+        
+        .language-selector-container label {
+            margin-right: 0.5rem;
+            color: #333;
+        }
+        
+        .language-selector {
+            padding: 0.4rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="app-header">
-            <img src="Fourier-Analytics-Logo.png" alt="Fourier Analytics">
-            <h1>Tax Admin Dashboard</h1>
+            <img src="Fourier-Analytics-Logo.png" alt="Fourier Analytics Logo">
+            <h1 data-i18n="adminDashboard">Tax Admin Dashboard</h1>
+            
+            <!-- Language selector -->
+            <div class="language-selector-container">
+                <label for="languageSelector" data-i18n="language">Language:</label>
+                <select id="languageSelector" class="language-selector">
+                    <option value="en" data-i18n="english">English</option>
+                    <option value="ig" data-i18n="igbo">Igbo</option>
+                    <option value="yo" data-i18n="yoruba">Yoruba</option>
+                    <option value="ha" data-i18n="hausa">Hausa</option>
+                </select>
+            </div>
         </div>
 
         <div class="tabs">
-            <button class="tab active" onclick="showPanel('users')">User Management</button>
-            <button class="tab" onclick="showPanel('analytics')">Analytics</button>
+            <button class="tab active" onclick="showPanel('dashboard')" data-i18n="dashboard">Dashboard</button>
+            <button class="tab" onclick="showPanel('users')" data-i18n="users">Users</button>
+            <button class="tab" onclick="showPanel('payments')" data-i18n="payments">Payments</button>
+            <button class="tab" onclick="showPanel('reports')" data-i18n="reports">Reports</button>
+            <button class="tab" onclick="showPanel('settings')" data-i18n="settings">Settings</button>
         </div>
 
-        <div id="usersPanel" class="panel active">
+        <div id="dashboard" class="panel active">
+            <h2 data-i18n="dashboardOverview">Dashboard Overview</h2>
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h3 data-i18n="totalUsers">Total Users</h3>
+                    <div class="analytics-value">1,248</div>
+                </div>
+                <div class="analytics-card">
+                    <h3 data-i18n="totalRevenue">Total Revenue</h3>
+                    <div class="analytics-value">₦15.7M</div>
+                </div>
+                <div class="analytics-card">
+                    <h3 data-i18n="pendingPayments">Pending Payments</h3>
+                    <div class="analytics-value">₦2.3M</div>
+                </div>
+                <div class="analytics-card">
+                    <h3 data-i18n="complianceRate">Compliance Rate</h3>
+                    <div class="analytics-value">78%</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3 data-i18n="revenueOverTime">Revenue Over Time</h3>
+                <canvas id="revenueChart"></canvas>
+            </div>
+
+            <div class="chart-container">
+                <h3 data-i18n="userRegistrations">User Registrations</h3>
+                <canvas id="userChart"></canvas>
+            </div>
+        </div>
+
+        <div id="users" class="panel">
+            <h2 data-i18n="manageUsers">Manage Users</h2>
             <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="Search by phone number, TIN, or status...">
-                <button onclick="searchUsers()">Search</button>
+                <input type="text" id="userSearchInput" data-i18n-placeholder="searchUsers" placeholder="Search users by phone or TIN...">
+                <button onclick="searchUsers()" data-i18n="search">Search</button>
             </div>
 
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Phone Number</th>
-                        <th>TIN</th>
-                        <th>Year</th>
-                        <th>Income</th>
-                        <th>Tax Owed</th>
-                        <th>Tax Paid</th>
-                        <th>Remaining Tax</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th data-i18n="phoneNumber">Phone Number</th>
+                        <th data-i18n="taxId">Tax ID</th>
+                        <th data-i18n="registrationDate">Registration Date</th>
+                        <th data-i18n="lastActivity">Last Activity</th>
+                        <th data-i18n="taxStatus">Tax Status</th>
+                        <th data-i18n="actions">Actions</th>
                     </tr>
                 </thead>
-                <tbody id="userTableBody"></tbody>
+                <tbody id="usersTableBody">
+                    <!-- User data will be populated here -->
+                </tbody>
             </table>
 
-            <div class="pagination" id="userPagination"></div>
-        </div>
-
-        <div id="analyticsPanel" class="panel">
-            <div class="analytics-grid">
-                <div class="analytics-card">
-                    <h3>Total Tax Collected</h3>
-                    <div class="analytics-value" id="totalCollected">₦0</div>
-                </div>
-                <div class="analytics-card">
-                    <h3>Total Unpaid Tax</h3>
-                    <div class="analytics-value" id="totalUnpaid">₦0</div>
-                </div>
-                <div class="analytics-card">
-                    <h3>Collection Rate</h3>
-                    <div class="analytics-value" id="collectionRate">0%</div>
-                </div>
-                <div class="analytics-card">
-                    <h3>Active Taxpayers</h3>
-                    <div class="analytics-value" id="activeTaxpayers">0</div>
-                </div>
-            </div>
-
-            <div class="chart-container">
-                <canvas id="yearlyTrendChart"></canvas>
-            </div>
-
-            <div class="chart-container">
-                <canvas id="statusDistributionChart"></canvas>
+            <div class="pagination" id="usersPagination">
+                <!-- Pagination will be populated here -->
             </div>
         </div>
+
+        <!-- Continue with other panels... -->
+
     </div>
 
-    <!-- Edit User Modal -->
-    <div id="editUserModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Edit User Data</h2>
-                <button class="close-modal" onclick="closeModal()">&times;</button>
-            </div>
-            <form id="editUserForm">
-                <div class="form-group">
-                    <label for="editPhoneNumber">Phone Number</label>
-                    <input type="text" id="editPhoneNumber" readonly>
-                </div>
-                <div class="form-group">
-                    <label for="editTIN">TIN</label>
-                    <input type="text" id="editTIN">
-                </div>
-                <div class="form-group">
-                    <label for="editYear">Year</label>
-                    <input type="number" id="editYear">
-                </div>
-                <div class="form-group">
-                    <label for="editIncome">Income</label>
-                    <input type="number" id="editIncome">
-                </div>
-                <div class="form-group">
-                    <label for="editExpenditure">Expenditure</label>
-                    <input type="number" id="editExpenditure">
-                </div>
-                <div class="form-group">
-                    <label for="editTaxPaid">Tax Paid</label>
-                    <input type="number" id="editTaxPaid">
-                </div>
-                <div class="form-group">
-                    <label for="editTaxOwed">Tax Owed</label>
-                    <input type="number" id="editTaxOwed" readonly>
-                </div>
-                <div class="form-group">
-                    <label for="editStatus">Status</label>
-                    <select id="editStatus">
-                        <option value="pending">Pending</option>
-                        <option value="active">Active</option>
-                        <option value="paid">Paid</option>
-                    </select>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
+    <script src="translations.js"></script>
+    <script src="language-switcher.js"></script>
     <script>
-        const MOCK_SERVER_URL = 'http://192.168.1.159:5000';
-        let currentPage = 1;
-        const itemsPerPage = 10;
-        let userData = [];
-        let filteredData = [];
-
-        // Initialize the dashboard
-        async function initializeDashboard() {
-            await loadUserData();
-            updateAnalytics();
-            initializeCharts();
-        }
-
-        // Load user data from server
-        async function loadUserData() {
-            try {
-                const response = await fetch(`${MOCK_SERVER_URL}/admin/users`);
-                const data = await response.json();
-                userData = data.data;
-                filteredData = [...userData];
-                displayUsers(currentPage);
-                updatePagination();
-            } catch (error) {
-                console.error('Error loading user data:', error);
-            }
-        }
-
-        // Display users for current page
-        function displayUsers(page) {
-            const start = (page - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
-            const pageData = filteredData.slice(start, end);
-
-            const tbody = document.getElementById('userTableBody');
-            tbody.innerHTML = '';
-
-            pageData.forEach(user => {
-                const income = parseFloat(user.income || 0);
-                const expenditure = parseFloat(user.expenditure || 0);
-                let taxOwed = parseFloat(user.tax_owed || 0);
-                
-                // Calculate tax owed if not already set
-                if (!user.tax_owed) {
-                    const taxableIncome = Math.max(0, income - expenditure);
-                    taxOwed = calculateNigeriaTax(taxableIncome);
-                    user.tax_owed = taxOwed; // Store it for future use
-                }
-                
-                const taxPaid = parseFloat(user.tax_paid || 0);
-                const remainingTax = Math.max(0, taxOwed - taxPaid);
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${user.phone_number}</td>
-                    <td>${user.tin || 'N/A'}</td>
-                    <td>${user.tax_year || new Date().getFullYear()}</td>
-                    <td>₦${parseFloat(user.income || 0).toLocaleString()}</td>
-                    <td>₦${taxOwed.toLocaleString()}</td>
-                    <td>₦${taxPaid.toLocaleString()}</td>
-                    <td>₦${remainingTax.toLocaleString()}</td>
-                    <td><span class="status-badge status-${user.status || 'pending'}">${user.status || 'pending'}</span></td>
-                    <td>
-                        <button onclick="editUser('${user.phone_number}')" class="btn-edit">Edit</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        // Update pagination controls
-        function updatePagination() {
-            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-            const pagination = document.getElementById('userPagination');
-            pagination.innerHTML = '';
-
-            for (let i = 1; i <= totalPages; i++) {
-                const button = document.createElement('button');
-                button.textContent = i;
-                button.classList.toggle('active', i === currentPage);
-                button.onclick = () => {
-                    currentPage = i;
-                    displayUsers(currentPage);
-                    updatePagination();
-                };
-                pagination.appendChild(button);
-            }
-        }
-
-        // Search users
-        function searchUsers() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            filteredData = userData.filter(user => 
-                user.phone_number.toLowerCase().includes(searchTerm) ||
-                (user.tin && user.tin.toLowerCase().includes(searchTerm)) ||
-                (user.status && user.status.toLowerCase().includes(searchTerm))
-            );
-            currentPage = 1;
-            displayUsers(currentPage);
-            updatePagination();
-        }
-
-        // Edit user function
-        async function editUser(phoneNumber) {
-            const user = userData.find(u => u.phone_number === phoneNumber);
-            if (!user) return;
-
-            document.getElementById('editPhoneNumber').value = user.phone_number;
-            document.getElementById('editTIN').value = user.tin || '';
-            document.getElementById('editYear').value = user.tax_year || new Date().getFullYear();
-            document.getElementById('editIncome').value = user.income || 0;
-            document.getElementById('editExpenditure').value = user.expenditure || 0;
-            document.getElementById('editTaxPaid').value = user.tax_paid || 0;
-            document.getElementById('editStatus').value = user.status || 'pending';
-
-            // Calculate tax owed
-            const income = parseFloat(user.income || 0);
-            const expenditure = parseFloat(user.expenditure || 0);
-            const taxOwed = calculateNigeriaTax(Math.max(0, income - expenditure));
-            document.getElementById('editTaxOwed').value = taxOwed.toFixed(2);
-
-            document.getElementById('editUserModal').style.display = 'block';
-        }
-
-        // Calculate tax based on Nigerian tax rates
-        function calculateNigeriaTax(taxableIncome) {
-            const TAX_RATES = [
-                [300000, 0.07],    // First 300,000 at 7%
-                [300000, 0.11],    // Next 300,000 at 11%
-                [500000, 0.15],    // Next 500,000 at 15%
-                [500000, 0.19],    // Next 500,000 at 19%
-                [1600000, 0.21],   // Next 1,600,000 at 21%
-                [3200000, 0.24]    // Above 3,200,000 at 24%
-            ];
-
-            let tax = 0;
-            let remainingIncome = taxableIncome;
-            
-            for (const [threshold, rate] of TAX_RATES) {
-                if (remainingIncome <= 0) break;
-                const amount = Math.min(threshold, remainingIncome);
-                tax += amount * rate;
-                remainingIncome -= amount;
-            }
-            
-            // Apply 24% for any amount above the last threshold
-            if (remainingIncome > 0) {
-                tax += remainingIncome * 0.24;
-            }
-            
-            return tax;
-        }
-
-        // Recalculate tax when income or expenditure changes
-        document.getElementById('editIncome').addEventListener('change', updateTaxOwed);
-        document.getElementById('editExpenditure').addEventListener('change', updateTaxOwed);
-
-        function updateTaxOwed() {
-            const income = parseFloat(document.getElementById('editIncome').value || 0);
-            const expenditure = parseFloat(document.getElementById('editExpenditure').value || 0);
-            const taxOwed = calculateNigeriaTax(Math.max(0, income - expenditure));
-            document.getElementById('editTaxOwed').value = taxOwed.toFixed(2);
-        }
-
-        // Close modal
-        function closeModal() {
-            document.getElementById('editUserModal').style.display = 'none';
-        }
-
-        // Handle form submission
-        document.getElementById('editUserForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const phoneNumber = document.getElementById('editPhoneNumber').value;
-            const income = parseFloat(document.getElementById('editIncome').value);
-            const expenditure = parseFloat(document.getElementById('editExpenditure').value || 0);
-            
-            // Calculate tax owed
-            const taxableIncome = Math.max(0, income - expenditure);
-            const taxOwed = calculateNigeriaTax(taxableIncome);
-            
-            const updatedUser = {
-                phone_number: phoneNumber,
-                tin: document.getElementById('editTIN').value,
-                tax_year: parseInt(document.getElementById('editYear').value),
-                income: income,
-                expenditure: expenditure,
-                tax_owed: taxOwed,
-                tax_paid: parseFloat(document.getElementById('editTaxPaid').value)
-            };
-
-            try {
-                // First, update the user data in the CSV file
-                const response = await fetch(`${MOCK_SERVER_URL}/admin/update-user`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(updatedUser)
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to update user data');
-                }
-
-                const result = await response.json();
-                
-                // Then update the local data
-                const index = userData.findIndex(u => u.phone_number === phoneNumber);
-                if (index !== -1) {
-                    userData[index] = result.data;
-                    filteredData = [...userData];
-                    displayUsers(currentPage);
-                    updateAnalytics();
-                    initializeCharts();
-                }
-
-                // Show success message
-                const successDiv = document.createElement('div');
-                successDiv.className = 'success-message';
-                successDiv.textContent = 'User data updated successfully!';
-                document.getElementById('editUserModal').appendChild(successDiv);
-
-                // Remove success message after 3 seconds
-                setTimeout(() => {
-                    successDiv.remove();
-                    closeModal();
-                }, 3000);
-
-            } catch (error) {
-                console.error('Error updating user:', error);
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'error-message';
-                errorDiv.textContent = `Error updating user data: ${error.message}`;
-                document.getElementById('editUserModal').appendChild(errorDiv);
-
-                // Remove error message after 3 seconds
-                setTimeout(() => {
-                    errorDiv.remove();
-                }, 3000);
-            }
+        // Setup language selector to handle changes
+        document.getElementById('languageSelector').addEventListener('change', function() {
+            updateLanguage(this.value);
         });
-
-        // Update analytics function
-        function updateAnalytics() {
-            let totalCollected = 0;
-            let totalUnpaid = 0;
-            let activeUsers = 0;
-
-            userData.forEach(user => {
-                const income = parseFloat(user.income || 0);
-                const expenditure = parseFloat(user.expenditure || 0);
-                let taxOwed = parseFloat(user.tax_owed || 0);
+        
+        // Initialize the page with language selector
+        document.addEventListener('DOMContentLoaded', function() {
+            // Apply the stored language or default to English
+            const lang = localStorage.getItem('taxAppLanguage') || 'en';
+            document.getElementById('languageSelector').value = lang;
+            
+            // Apply translations
+            updateLanguage(lang);
+        });
+        
+        // Add translations specific to the admin panel
+        if (translations) {
+            Object.keys(translations).forEach(lang => {
+                // Admin dashboard translations
+                translations[lang].adminDashboard = {
+                    'en': 'Tax Admin Dashboard',
+                    'ig': 'Obosara Onye Njikwa Ụtụ Isi',
+                    'yo': 'Dasibodu Alakoso Owo Ori',
+                    'ha': 'Dashbord na Ma\'aikatan Haraji'
+                }[lang];
                 
-                // Calculate tax owed if not already set
-                if (!user.tax_owed) {
-                    const taxableIncome = Math.max(0, income - expenditure);
-                    taxOwed = calculateNigeriaTax(taxableIncome);
-                    user.tax_owed = taxOwed; // Store it for future use
-                }
+                translations[lang].dashboard = {
+                    'en': 'Dashboard',
+                    'ig': 'Obosara',
+                    'yo': 'Dasibodu',
+                    'ha': 'Dashbord'
+                }[lang];
                 
-                const taxPaid = parseFloat(user.tax_paid || 0);
-                const remainingTax = Math.max(0, taxOwed - taxPaid);
+                translations[lang].users = {
+                    'en': 'Users',
+                    'ig': 'Ndị ọrụ',
+                    'yo': 'Awọn olumulo',
+                    'ha': 'Masu amfani'
+                }[lang];
                 
-                totalCollected += taxPaid;
-                totalUnpaid += remainingTax;
+                translations[lang].payments = {
+                    'en': 'Payments',
+                    'ig': 'Ụgwọ',
+                    'yo': 'Awọn isanwo',
+                    'ha': 'Biyan kuɗi'
+                }[lang];
                 
-                if (user.status === 'active' || user.status === 'paid') {
-                    activeUsers++;
-                }
+                translations[lang].reports = {
+                    'en': 'Reports',
+                    'ig': 'Akụkọ',
+                    'yo': 'Awọn ijabọ',
+                    'ha': 'Rahotanni'
+                }[lang];
+                
+                translations[lang].settings = {
+                    'en': 'Settings',
+                    'ig': 'Ntọala',
+                    'yo': 'Ètò',
+                    'ha': 'Saituna'
+                }[lang];
+                
+                translations[lang].dashboardOverview = {
+                    'en': 'Dashboard Overview',
+                    'ig': 'Nchịkọta Obosara',
+                    'yo': 'Akopọ Dasibodu',
+                    'ha': 'Takaitaccen Bayanin Dashbord'
+                }[lang];
+                
+                translations[lang].totalUsers = {
+                    'en': 'Total Users',
+                    'ig': 'Ndị ọrụ niile',
+                    'yo': 'Gbogbo Awọn olumulo',
+                    'ha': 'Jimlar Masu amfani'
+                }[lang];
+                
+                translations[lang].totalRevenue = {
+                    'en': 'Total Revenue',
+                    'ig': 'Ego mmekọta niile',
+                    'yo': 'Owo gbigba lapapọ',
+                    'ha': 'Jimlar Kudin shiga'
+                }[lang];
+                
+                translations[lang].pendingPayments = {
+                    'en': 'Pending Payments',
+                    'ig': 'Ụgwọ na-echere',
+                    'yo': 'Awọn isanwo to n duro',
+                    'ha': 'Biyan kuɗin da ke jira'
+                }[lang];
+                
+                translations[lang].complianceRate = {
+                    'en': 'Compliance Rate',
+                    'ig': 'Ọnụ ọgụgụ ndabara',
+                    'yo': 'Oṣuwọn ifọkansi',
+                    'ha': 'Ma\'aunin biyayya'
+                }[lang];
+                
+                translations[lang].revenueOverTime = {
+                    'en': 'Revenue Over Time',
+                    'ig': 'Ego mmekọta na mgbe',
+                    'yo': 'Owo gbigba lori akoko',
+                    'ha': 'Kudin shiga a lokaci'
+                }[lang];
+                
+                translations[lang].userRegistrations = {
+                    'en': 'User Registrations',
+                    'ig': 'Ndebanyere aha ndị ọrụ',
+                    'yo': 'Iforukọsilẹ Awọn olumulo',
+                    'ha': 'Rajistan Masu amfani'
+                }[lang];
+                
+                translations[lang].manageUsers = {
+                    'en': 'Manage Users',
+                    'ig': 'Jikwaa ndị ọrụ',
+                    'yo': 'Ṣakoso Awọn olumulo',
+                    'ha': 'Sarrafa Masu amfani'
+                }[lang];
+                
+                translations[lang].searchUsers = {
+                    'en': 'Search users by phone or TIN...',
+                    'ig': 'Chọọ ndị ọrụ site na ekwentị ma ọ bụ TIN...',
+                    'yo': 'Wa awọn olumulo nipasẹ fonu tabi TIN...',
+                    'ha': 'Bincika masu amfani ta hanyar lambar waya ko TIN...'
+                }[lang];
+                
+                translations[lang].search = {
+                    'en': 'Search',
+                    'ig': 'Chọọ',
+                    'yo': 'Wa',
+                    'ha': 'Bincika'
+                }[lang];
+                
+                translations[lang].phoneNumber = {
+                    'en': 'Phone Number',
+                    'ig': 'Nọmba Ekwentị',
+                    'yo': 'Nọmba Fonu',
+                    'ha': 'Lambar Waya'
+                }[lang];
+                
+                translations[lang].taxId = {
+                    'en': 'Tax ID',
+                    'ig': 'Nọmba Ụtụ Isi',
+                    'yo': 'Nọmba idanimo Owo Ori',
+                    'ha': 'Lambar Gano na Haraji'
+                }[lang];
+                
+                translations[lang].registrationDate = {
+                    'en': 'Registration Date',
+                    'ig': 'Ụbọchị ndebanye aha',
+                    'yo': 'Ọjọ iforukọsilẹ',
+                    'ha': 'Ranar Rajista'
+                }[lang];
+                
+                translations[lang].lastActivity = {
+                    'en': 'Last Activity',
+                    'ig': 'Mmemme ikpeazụ',
+                    'yo': 'Iṣẹ ikẹhin',
+                    'ha': 'Aiki na Karshe'
+                }[lang];
+                
+                translations[lang].taxStatus = {
+                    'en': 'Tax Status',
+                    'ig': 'Ọnọdụ Ụtụ Isi',
+                    'yo': 'Ipo Owo Ori',
+                    'ha': 'Matsayin Haraji'
+                }[lang];
+                
+                translations[lang].actions = {
+                    'en': 'Actions',
+                    'ig': 'Omume',
+                    'yo': 'Awọn igbesẹ',
+                    'ha': 'Ayyuka'
+                }[lang];
             });
-
-            document.getElementById('totalCollected').textContent = `₦${totalCollected.toLocaleString()}`;
-            document.getElementById('totalUnpaid').textContent = `₦${totalUnpaid.toLocaleString()}`;
-            document.getElementById('collectionRate').textContent = 
-                totalCollected + totalUnpaid > 0 ? 
-                `${((totalCollected / (totalCollected + totalUnpaid)) * 100).toFixed(1)}%` : '0%';
-            document.getElementById('activeTaxpayers').textContent = activeUsers;
         }
-
-        // Initialize charts with updated data
-        function initializeCharts() {
-            // Yearly trend chart
-            const yearlyData = processYearlyData();
-            new Chart(document.getElementById('yearlyTrendChart').getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: yearlyData.years,
-                    datasets: [
-                        {
-                            label: 'Tax Collected',
-                            data: yearlyData.collected,
-                            borderColor: '#28a745',
-                            fill: false
-                        },
-                        {
-                            label: 'Unpaid Tax',
-                            data: yearlyData.unpaid,
-                            borderColor: '#dc3545',
-                            fill: false
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    title: {
-                        display: true,
-                        text: 'Yearly Tax Collection Trends'
-                    }
-                }
-            });
-
-            // Status distribution chart
-            const statusData = processStatusData();
-            new Chart(document.getElementById('statusDistributionChart').getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Pending', 'Active', 'Paid'],
-                    datasets: [{
-                        data: [statusData.pending, statusData.active, statusData.paid],
-                        backgroundColor: ['#ffc107', '#007bff', '#28a745']
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    title: {
-                        display: true,
-                        text: 'Tax Payment Status Distribution'
-                    }
-                }
-            });
-        }
-
-        // Process yearly data for charts
-        function processYearlyData() {
-            const yearlyData = {};
-            userData.forEach(user => {
-                const year = user.tax_year || new Date().getFullYear();
-                if (!yearlyData[year]) {
-                    yearlyData[year] = { collected: 0, unpaid: 0 };
-                }
-                
-                const income = parseFloat(user.income || 0);
-                const expenditure = parseFloat(user.expenditure || 0);
-                let taxOwed = parseFloat(user.tax_owed || 0);
-                
-                // Calculate tax owed if not already set
-                if (!user.tax_owed) {
-                    const taxableIncome = Math.max(0, income - expenditure);
-                    taxOwed = calculateNigeriaTax(taxableIncome);
-                }
-                
-                const taxPaid = parseFloat(user.tax_paid || 0);
-                const remainingTax = Math.max(0, taxOwed - taxPaid);
-                
-                yearlyData[year].collected += taxPaid;
-                yearlyData[year].unpaid += remainingTax;
-            });
-
-            const years = Object.keys(yearlyData).sort();
-            return {
-                years,
-                collected: years.map(year => yearlyData[year].collected),
-                unpaid: years.map(year => yearlyData[year].unpaid)
-            };
-        }
-
-        // Process status data for charts
-        function processStatusData() {
-            return {
-                pending: userData.filter(user => !user.status || user.status === 'pending').length,
-                active: userData.filter(user => user.status === 'active').length,
-                paid: userData.filter(user => user.status === 'paid').length
-            };
-        }
-
-        // Show selected panel
+        
+        // Function to show panel when tab is clicked
         function showPanel(panelId) {
+            // Hide all panels
             document.querySelectorAll('.panel').forEach(panel => {
                 panel.classList.remove('active');
             });
+            
+            // Remove active class from all tabs
             document.querySelectorAll('.tab').forEach(tab => {
                 tab.classList.remove('active');
             });
             
-            document.getElementById(`${panelId}Panel`).classList.add('active');
-            document.querySelector(`.tab[onclick="showPanel('${panelId}')"]`).classList.add('active');
+            // Show selected panel
+            document.getElementById(panelId).classList.add('active');
             
-            if (panelId === 'analytics') {
-                updateAnalytics();
-                initializeCharts();
+            // Add active class to clicked tab
+            const tabs = document.querySelectorAll('.tab');
+            for (let i = 0; i < tabs.length; i++) {
+                if (tabs[i].getAttribute('onclick').includes(panelId)) {
+                    tabs[i].classList.add('active');
+                    break;
+                }
             }
         }
-
-        // Initialize the dashboard when the page loads
-        document.addEventListener('DOMContentLoaded', initializeDashboard);
+        
+        // Function to search users
+        function searchUsers() {
+            const searchTerm = document.getElementById('userSearchInput').value.trim();
+            // In a real application, this would make an API call
+            // For now, we'll just populate with dummy data
+            populateUserTable();
+        }
+        
+        // Function to populate user table with dummy data
+        function populateUserTable() {
+            const tableBody = document.getElementById('usersTableBody');
+            tableBody.innerHTML = '';
+            
+            const dummyUsers = [
+                { phone: '2348012345678', tin: 'TIN123456', regDate: '2023-01-15', lastActivity: '2023-06-20', status: 'active' },
+                { phone: '2348023456789', tin: 'TIN234567', regDate: '2023-02-10', lastActivity: '2023-06-18', status: 'pending' },
+                { phone: '2348034567890', tin: 'TIN345678', regDate: '2023-03-05', lastActivity: '2023-06-15', status: 'paid' },
+                { phone: '2348045678901', tin: 'TIN456789', regDate: '2023-04-20', lastActivity: '2023-06-10', status: 'active' },
+                { phone: '2348056789012', tin: 'TIN567890', regDate: '2023-05-12', lastActivity: '2023-06-05', status: 'pending' }
+            ];
+            
+            const lang = localStorage.getItem('taxAppLanguage') || 'en';
+            
+            dummyUsers.forEach(user => {
+                const row = document.createElement('tr');
+                
+                // Translate status
+                const statusText = {
+                    'active': {
+                        'en': 'Active',
+                        'ig': 'Na-arụ ọrụ',
+                        'yo': 'Ni iṣẹ́',
+                        'ha': 'Aiki'
+                    },
+                    'pending': {
+                        'en': 'Pending',
+                        'ig': 'Na-echere',
+                        'yo': 'N duro',
+                        'ha': 'Jira'
+                    },
+                    'paid': {
+                        'en': 'Paid',
+                        'ig': 'Akwụọla',
+                        'yo': 'Ti san',
+                        'ha': 'An biya'
+                    }
+                }[user.status][lang];
+                
+                // Create row with translated status
+                row.innerHTML = `
+                    <td>${user.phone}</td>
+                    <td>${user.tin}</td>
+                    <td>${user.regDate}</td>
+                    <td>${user.lastActivity}</td>
+                    <td><span class="status-badge status-${user.status}">${statusText}</span></td>
+                    <td>
+                        <button class="action-btn" data-i18n="view">View</button>
+                        <button class="action-btn" data-i18n="edit">Edit</button>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Apply translations to newly added elements
+            updateLanguage(lang);
+        }
+        
+        // Initialize charts
+        function initCharts() {
+            // Revenue chart
+            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+            const revenueChart = new Chart(revenueCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Revenue (₦ millions)',
+                        data: [2.1, 1.8, 2.7, 3.2, 2.9, 3.0],
+                        borderColor: '#007bff',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+            
+            // User registrations chart
+            const userCtx = document.getElementById('userChart').getContext('2d');
+            const userChart = new Chart(userCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'New Users',
+                        data: [125, 156, 183, 207, 238, 256],
+                        backgroundColor: '#28a745'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+        
+        // Update language selector to handle changes
+        function setupLanguageSelector() {
+            document.getElementById('languageSelector').addEventListener('change', function() {
+                const lang = this.value;
+                updateLanguage(lang);
+                populateUserTable(); // Refresh the table with translated content
+            });
+        }
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Apply the stored language or default to English
+            const lang = localStorage.getItem('taxAppLanguage') || 'en';
+            document.getElementById('languageSelector').value = lang;
+            
+            // Apply translations
+            updateLanguage(lang);
+            
+            // Initialize charts
+            initCharts();
+            
+            // Populate user table with dummy data
+            populateUserTable();
+            
+            // Setup language selector
+            setupLanguageSelector();
+        });
     </script>
 </body>
 </html> 

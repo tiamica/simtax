@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tax App Mobile Simulator</title>
+    <title data-i18n="mobileSimulator">Tax App Mobile Simulator</title>
+    <link rel="stylesheet" href="styles.css">
     <style>
         * {
             margin: 0;
@@ -202,6 +203,27 @@
             color: #333;
             font-size: 1.5rem;
         }
+
+        /* Additional styles for language selector in simulator */
+        .language-selector-container {
+            padding: 0.5rem;
+            background-color: #f8f9fa;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .language-selector-container label {
+            margin-right: 0.5rem;
+            font-size: 0.9rem;
+            color: #333;
+        }
+        
+        .language-selector {
+            padding: 0.3rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -213,36 +235,49 @@
         </div>
         <div class="app-header">
             <img src="Fourier-Analytics-Logo.png" alt="Fourier Analytics Logo">
-            <h1>Tax Mobile App</h1>
+            <h1 data-i18n="taxApp">Tax App</h1>
             <button onclick="logout()" class="logout-btn" id="logoutBtn" style="display: none;">Logout</button>
         </div>
-        <div class="login-section" id="loginSection">
-            <input type="text" id="phoneNumber" placeholder="Enter phone number (e.g., 2348012345678)">
-            <button onclick="login()">Login</button>
+        
+        <!-- Language selector -->
+        <div class="language-selector-container">
+            <label for="languageSelector" data-i18n="language">Language:</label>
+            <select id="languageSelector" class="language-selector">
+                <option value="en" data-i18n="english">English</option>
+                <option value="ig" data-i18n="igbo">Igbo</option>
+                <option value="yo" data-i18n="yoruba">Yoruba</option>
+                <option value="ha" data-i18n="hausa">Hausa</option>
+            </select>
         </div>
-        <div class="response-section" id="chatContainer">
-            <div class="message-received">
-                Welcome to Tax App! Please login with your phone number to continue.
+        
+        <div id="loginSection" class="login-section">
+            <input type="text" id="phoneNumber" data-i18n-placeholder="phoneNumberPlaceholder" placeholder="Enter your phone number">
+            <button onclick="login()" data-i18n="login">Login</button>
+            <div class="help-text" data-i18n="loginHelp">Enter your phone number to access your tax account</div>
+        </div>
+        
+        <div id="loggedInSection" class="login-section logged-in" style="display: none;">
+            <span data-i18n="loggedInAs">Logged in as:</span> <span id="loggedInPhoneNumber"></span>
+            <button class="logout-btn" onclick="logout()" data-i18n="logout">Logout</button>
+        </div>
+        
+        <div class="response-section" id="responseContainer">
+            <div class="message-bubble message-received" data-i18n="welcomeMessage">
+                Welcome to the Tax App. Please log in to access your account, or type HELP for assistance.
             </div>
         </div>
+        
         <div class="command-section">
             <div class="command-input-container">
-                <input type="text" id="commandInput" placeholder="Type a command..." disabled>
-                <button onclick="sendCommand()">Send</button>
+                <input type="text" id="commandInput" data-i18n-placeholder="enterCommand" placeholder="Enter a command">
+                <button onclick="sendCommand()" data-i18n="send">Send</button>
             </div>
-            <div class="help-text">
-                Commands:<br>
-                REG TIN123456 - Register with TIN<br>
-                INC 5000 - Add income<br>
-                EXP 2000 - Add expenditure<br>
-                YEAR 2023 - Set tax year<br>
-                TAX - View tax calculation<br>
-                RETURN - Check tax return status<br>
-                PAY 1000 - Make tax payment
-            </div>
+            <div class="help-text" data-i18n="commandHelp">Type 'HELP' for a list of available commands</div>
         </div>
     </div>
 
+    <script src="translations.js"></script>
+    <script src="language-switcher.js"></script>
     <script>
         const MOCK_SERVER_URL = 'http://192.168.1.159:5000';
         let currentPhoneNumber = null;
@@ -277,13 +312,20 @@
         });
 
         function addMessage(message, isSent = false) {
-            const chatContainer = document.getElementById('chatContainer');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message-bubble ${isSent ? 'message-sent' : 'message-received'}`;
-            messageDiv.textContent = message;
-            chatContainer.appendChild(messageDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
+    const chatContainer = document.getElementById('responseContainer');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message-bubble ${isSent ? 'message-sent' : 'message-received'}`;
+    
+    // Handle both string messages and message objects
+    if (typeof message === 'object' && message !== null) {
+        messageDiv.textContent = message.message || JSON.stringify(message);
+    } else {
+        messageDiv.textContent = message;
+    }
+    
+    chatContainer.appendChild(messageDiv);
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+}
 
         function logout() {
             currentPhoneNumber = null;
@@ -307,7 +349,7 @@
             document.getElementById('commandInput').value = '';
             
             // Reset chat container to welcome message
-            const chatContainer = document.getElementById('chatContainer');
+            const chatContainer = document.getElementById('responseContainer');
             chatContainer.innerHTML = '<div class="message-received">Welcome to Tax App! Please login with your phone number to continue.</div>';
         }
 
@@ -380,59 +422,82 @@
         }
 
         async function sendCommand() {
-            const commandInput = document.getElementById('commandInput');
-            const command = commandInput.value.trim();
-            if (!command) return;
+    const commandInput = document.getElementById('commandInput');
+    const command = commandInput.value.trim();
+    if (!command) return;
 
-            if (!currentPhoneNumber) {
-                addMessage('Please login first');
-                return;
-            }
+    // Add command to the chat
+    addMessage(command, true);
+    commandInput.value = '';
 
-            addMessage(command, true);
-            commandInput.value = '';
+    // Special case for HELP command - always available even if not logged in
+    if (command.toUpperCase() === 'HELP') {
+        const lang = localStorage.getItem('taxAppLanguage') || 'en';
+        const helpText = {
+            'en': 'Available commands:\n- REG TIN123456: Register with TIN\n- INC 5000: Add income\n- EXP 2000: Add expenditure\n- YEAR 2023: Set tax year\n- TAX: View tax calculation\n- RETURN: Check tax return status\n- PAY 1000: Make tax payment',
+            'ig': 'Iwu dị:\n- REG TIN123456: Debanye aha na TIN\n- INC 5000: Tinye ego ị na-enweta\n- EXP 2000: Tinye ego ị na-emefu\n- YEAR 2023: Họrọ afọ ụtụ isi\n- TAX: Lelee ọnụ ọgụgụ ụtụ isi\n- RETURN: Lelee ọnọdụ nlele ụtụ isi\n- PAY 1000: Kwụọ ụtụ isi',
+            'yo': 'Awọn aṣẹ to wa:\n- REG TIN123456: Forukọsilẹ pẹlu TIN\n- INC 5000: Fi owo sii\n- EXP 2000: Fi owo gbigba sii\n- YEAR 2023: Yan odun owo ori\n- TAX: Wo iṣiro owo ori\n- RETURN: Ṣayẹwo ipo ipadabọ owo ori\n- PAY 1000: San owo ori',
+            'ha': 'Umarnin da ke akwai:\n- REG TIN123456: Yi rajista da TIN\n- INC 5000: Ƙara kuɗi shigowa\n- EXP 2000: Ƙara kuɗi fitarwa\n- YEAR 2023: Zaɓi shekara na haraji\n- TAX: Duba lissafin haraji\n- RETURN: Duba matsayin dawowar haraji\n- PAY 1000: Biyan haraji'
+        }[lang];
+        
+        addMessage(helpText);
+        return;
+    }
 
-            try {
-                const [cmd, ...args] = command.split(' ');
-                let response;
+    if (!currentPhoneNumber) {
+        const lang = localStorage.getItem('taxAppLanguage') || 'en';
+        const loginPrompt = {
+            'en': 'Please login first to use commands.',
+            'ig': 'Biko banye iji jiri iwu.',
+            'yo': 'Jọwọ wọle lati lo awọn aṣẹ.',
+            'ha': 'Da fatan za a shiga don amfani da umarni.'
+        }[lang];
+        
+        addMessage(loginPrompt);
+        return;
+    }
 
-                switch(cmd.toUpperCase()) {
-                    case 'REG':
-                        response = await sendMessage(currentPhoneNumber, command);
-                        break;
-                    case 'INC':
-                    case 'EXP':
-                        // Append the year to the command if not already specified
-                        if (args.length === 1) {
-                            response = await sendMessage(currentPhoneNumber, `${cmd} ${args[0]} ${currentTaxYear}`);
-                        } else {
-                            response = await sendMessage(currentPhoneNumber, command);
-                        }
-                        break;
-                    case 'YEAR':
-                        response = await handleYearCommand(args[0]);
-                        break;
-                    case 'TAX':
-                        response = await handleTaxCommand(currentPhoneNumber, args[0] || currentTaxYear);
-                        break;
-                    case 'RETURN':
-                        response = await handleReturnCommand(currentPhoneNumber, args[0] || currentTaxYear);
-                        break;
-                    case 'PAY':
-                        if (!args[0]) {
-                            throw new Error('Payment amount required');
-                        }
-                        response = await handlePayCommand(currentPhoneNumber, args[0], args[1] || currentTaxYear);
-                        break;
-                    default:
-                        throw new Error('Invalid command');
+    try {
+        const [cmd, ...args] = command.split(' ');
+        let response;
+
+        switch(cmd.toUpperCase()) {
+            case 'REG':
+                response = await sendMessage(currentPhoneNumber, command);
+                break;
+            case 'INC':
+            case 'EXP':
+                // Append the year to the command if not already specified
+                if (args.length === 1) {
+                    response = await sendMessage(currentPhoneNumber, `${cmd} ${args[0]} ${currentTaxYear}`);
+                } else {
+                    response = await sendMessage(currentPhoneNumber, command);
                 }
-
-                addMessage(formatResponse(response));
-            } catch (error) {
-                addMessage(`Error: ${error.message}`);
-            }
+                break;
+            case 'YEAR':
+                response = await handleYearCommand(args[0]);
+                break;
+            case 'TAX':
+                response = await handleTaxCommand(currentPhoneNumber, args[0] || currentTaxYear);
+                break;
+            case 'RETURN':
+                response = await handleReturnCommand(currentPhoneNumber, args[0] || currentTaxYear);
+                break;
+            case 'PAY':
+                if (!args[0]) {
+                    throw new Error('Payment amount required');
+                }
+                response = await handlePayCommand(currentPhoneNumber, args[0], args[1] || currentTaxYear);
+                break;
+            default:
+                throw new Error('Invalid command');
         }
+
+        addMessage(formatResponse(response));
+    } catch (error) {
+        addMessage(`Error: ${error.message}`);
+    }
+}
 
         async function sendMessage(phoneNumber, message) {
             const response = await fetch(`${MOCK_SERVER_URL}/send`, {
@@ -659,6 +724,32 @@ Status: ${data.status}`;
                 };
             }
         }
+
+        // Update language selector to handle changes
+        document.getElementById('languageSelector').addEventListener('change', function() {
+            const lang = this.value;
+            updateLanguage(lang);
+        });
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Apply the stored language or default to English
+            const lang = localStorage.getItem('taxAppLanguage') || 'en';
+            document.getElementById('languageSelector').value = lang;
+            
+            // Apply translations
+            updateLanguage(lang);
+            
+            // Setup a function to show localized alerts
+            window.showLocalizedAlert = function(key, additionalText = '') {
+                const lang = localStorage.getItem('taxAppLanguage') || 'en';
+                let message = translations[lang][key] || translations['en'][key];
+                if (additionalText) {
+                    message += additionalText;
+                }
+                alert(message);
+            };
+        });
     </script>
 </body>
 </html> 

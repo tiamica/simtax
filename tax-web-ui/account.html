@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tax Account Overview</title>
+    <title data-i18n="taxAccountOverview">Tax Account Overview</title>
     <style>
         * {
             margin: 0;
@@ -422,6 +422,8 @@
         </div>
     </div>
 
+    <script src="translations.js"></script>
+    <script src="language-switcher.js"></script>
     <script>
         const MOCK_SERVER_URL = 'http://192.168.1.159:5000';
         let currentPhoneNumber = null;
@@ -458,13 +460,13 @@
         async function login() {
             const phoneNumber = document.getElementById('phoneNumber').value.trim();
             if (!phoneNumber || !/^\d{10,}$/.test(phoneNumber)) {
-                alert('Please enter a valid phone number');
+                showLocalizedAlert('enterValidPhone');
                 return;
             }
 
             try {
                 const response = await fetch(`${MOCK_SERVER_URL}/admin/user/${phoneNumber}`);
-                if (!response.ok) throw new Error('User not found');
+                if (!response.ok) throw new Error(translations[currentLanguage].userNotFound);
 
                 const data = await response.json();
                 if (data.status === 'success') {
@@ -474,7 +476,7 @@
                     loadAccountData();
                 }
             } catch (error) {
-                alert('Failed to login: ' + error.message);
+                showLocalizedAlert('failedLogin', error.message);
             }
         }
 
@@ -619,14 +621,14 @@
                 }
             } catch (error) {
                 console.error('Error loading account data:', error);
-                alert('Failed to load account data: ' + error.message);
+                showLocalizedAlert('failedLoadData', error.message);
             }
         }
 
         async function processPayment() {
             const amount = parseFloat(document.getElementById('paymentAmount').value);
             if (isNaN(amount) || amount <= 0) {
-                alert('Please enter a valid payment amount');
+                showLocalizedAlert('enterValidAmount');
                 return;
             }
 
@@ -644,7 +646,7 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error('Payment failed');
+                    throw new Error(translations[currentLanguage].paymentFailed);
                 }
 
                 const data = await response.json();
@@ -652,11 +654,11 @@
                     // Refresh account data to show updated values
                     await loadAccountData();
                     document.getElementById('paymentAmount').value = '';
-                    alert('Payment processed successfully!');
+                    showLocalizedAlert('paymentSuccess');
                 }
             } catch (error) {
                 console.error('Error processing payment:', error);
-                alert('Failed to process payment. Please try again later.');
+                showLocalizedAlert('failedPayment');
             }
         }
 
@@ -702,12 +704,12 @@
             const tin = document.getElementById('regTIN').value.trim();
 
             if (!phoneNumber || !/^\d{10,}$/.test(phoneNumber)) {
-                alert('Please enter a valid phone number');
+                showLocalizedAlert('enterValidPhone');
                 return;
             }
 
             if (!tin || tin.length < 6) {
-                alert('Please enter a valid TIN (at least 6 characters)');
+                showLocalizedAlert('enterValidTIN');
                 return;
             }
 
@@ -723,18 +725,18 @@
                     })
                 });
 
-                if (!response.ok) throw new Error('Registration failed');
+                if (!response.ok) throw new Error(translations[currentLanguage].regFailed);
 
                 const data = await response.json();
                 if (data.status === 'success') {
-                    alert('Registration successful! You can now login.');
+                    showLocalizedAlert('regSuccess');
                     showLoginForm();
                     document.getElementById('phoneNumber').value = phoneNumber;
                 } else {
-                    throw new Error(data.message || 'Registration failed');
+                    throw new Error(data.message || translations[currentLanguage].regFailed);
                 }
             } catch (error) {
-                alert('Registration failed: ' + error.message);
+                showLocalizedAlert('regFailed', error.message);
             }
         }
     </script>
