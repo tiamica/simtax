@@ -299,61 +299,112 @@
             color: #333;
             font-size: 1.5rem;
         }
+        
+        /* Language selector styles */
+        .language-selector-container {
+            display: flex;
+            align-items: center;
+            background-color: #f8f9fa;
+            padding: 0.8rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        
+        .language-selector-container label {
+            margin-right: 0.8rem;
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .language-selector {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            font-size: 0.9rem;
+            color: #333;
+            cursor: pointer;
+        }
+        
+        .language-selector:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+        }
+        
+        @media (max-width: 768px) {
+            .language-selector-container {
+                padding: 0.6rem;
+                margin-bottom: 0.8rem;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- Manually add language selector instead of relying on language-switcher.js to create it -->
+        <div class="language-selector-container">
+            <label for="languageSelector" data-i18n="language">Language:</label>
+            <select id="languageSelector" class="language-selector" onchange="updateLanguage(this.value)">
+                <option value="en" data-i18n="english">English</option>
+                <option value="ig" data-i18n="igbo">Igbo</option>
+                <option value="yo" data-i18n="yoruba">Yoruba</option>
+                <option value="ha" data-i18n="hausa">Hausa</option>
+            </select>
+        </div>
+        
         <div id="loginSection" class="login-section">
             <div class="app-header">
                 <img src="Fourier-Analytics-Logo.png" alt="Fourier Analytics Logo">
-                <h1>Account Login</h1>
+                <h1 data-i18n="accountLogin">Account Login</h1>
             </div>
             <div class="form-group">
-                <label for="phoneNumber">Phone Number:</label>
-                <input type="text" id="phoneNumber" placeholder="Enter your phone number">
+                <label for="phoneNumber" data-i18n="phoneNumber">Phone Number:</label>
+                <input type="text" id="phoneNumber" data-i18n-placeholder="enterPhoneNumber" placeholder="Enter your phone number">
             </div>
-            <button onclick="login()">Login</button>
+            <button onclick="login()" data-i18n="login">Login</button>
             <div class="login-divider">
-                <span>or</span>
+                <span data-i18n="or">or</span>
             </div>
-            <button onclick="showRegistrationForm()" class="secondary-btn">Create New Account</button>
+            <button onclick="showRegistrationForm()" class="secondary-btn" data-i18n="createNewAccount">Create New Account</button>
         </div>
 
         <div id="registrationSection" class="login-section" style="display: none;">
             <div class="app-header">
                 <img src="Fourier-Analytics-Logo.png" alt="Fourier Analytics Logo">
-                <h1>Register New Account</h1>
+                <h1 data-i18n="registerNewAccount">Register New Account</h1>
             </div>
             <div class="form-group">
-                <label for="regPhoneNumber">Phone Number:</label>
-                <input type="text" id="regPhoneNumber" placeholder="Enter your phone number">
+                <label for="regPhoneNumber" data-i18n="phoneNumber">Phone Number:</label>
+                <input type="text" id="regPhoneNumber" data-i18n-placeholder="enterPhoneNumber" placeholder="Enter your phone number">
             </div>
             <div class="form-group">
-                <label for="regTIN">TIN (Tax Identification Number):</label>
-                <input type="text" id="regTIN" placeholder="Enter your TIN">
+                <label for="regTIN" data-i18n="tinLabel">TIN (Tax Identification Number):</label>
+                <input type="text" id="regTIN" data-i18n-placeholder="enterTIN" placeholder="Enter your TIN">
             </div>
-            <button onclick="register()">Register</button>
-            <button onclick="showLoginForm()" class="secondary-btn">Back to Login</button>
+            <button onclick="register()" data-i18n="register">Register</button>
+            <button onclick="showLoginForm()" class="secondary-btn" data-i18n="backToLogin">Back to Login</button>
         </div>
 
         <div id="accountSection" style="display: none;">
             <div class="app-header">
                 <img src="Fourier-Analytics-Logo.png" alt="Fourier Analytics Logo">
-                <h1>Tax Account Overview</h1>
+                <h1 data-i18n="taxAccountOverview">Tax Account Overview</h1>
             </div>
             <div class="header">
                 <div class="header-content">
                     <div class="header-left">
-                        <h1>Tax Account Overview</h1>
+                        <h1 data-i18n="taxAccountOverview">Tax Account Overview</h1>
                         <div class="user-info" id="userInfo"></div>
                     </div>
-                    <button onclick="logout()" class="logout-btn">Logout</button>
+                    <button onclick="logout()" class="logout-btn" data-i18n="logout">Logout</button>
                 </div>
             </div>
 
             <div class="current-year">
                 <div class="year-selector" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <h2>Tax Summary</h2>
+                    <h2 data-i18n="taxSummary">Tax Summary</h2>
                     <select id="yearSelector" onchange="loadAccountData()" style="padding: 0.5rem; border-radius: 4px; border: 1px solid #ddd;">
                         <option value="2025">2025</option>
                         <option value="2024">2024</option>
@@ -363,57 +414,57 @@
                     </select>
                 </div>
                 <div id="currentYearSummary" class="tax-summary">
-                    <h3>Current Year Summary</h3>
+                    <h3 data-i18n="currentYearSummary">Current Year Summary</h3>
                     <div class="tax-item">
-                        <div class="label">Year</div>
+                        <div class="label" data-i18n="year">Year</div>
                         <div class="value" id="currentYear"></div>
                     </div>
                     <div class="tax-item">
-                        <div class="label">Income</div>
+                        <div class="label" data-i18n="income">Income</div>
                         <div class="value" id="currentIncome"></div>
                     </div>
                     <div class="tax-item">
-                        <div class="label">Expenditure</div>
+                        <div class="label" data-i18n="expenditure">Expenditure</div>
                         <div class="value" id="currentExpenses"></div>
                     </div>
                     <div class="tax-item highlight">
-                        <div class="label">Total Tax Owed</div>
+                        <div class="label" data-i18n="totalTaxOwed">Total Tax Owed</div>
                         <div class="value" id="currentTaxOwed"></div>
                     </div>
                     <div class="tax-item highlight">
-                        <div class="label">Tax Paid</div>
+                        <div class="label" data-i18n="taxPaid">Tax Paid</div>
                         <div class="value" id="currentTaxPaid"></div>
                     </div>
                     <div class="tax-item highlight">
-                        <div class="label">Remaining Tax</div>
+                        <div class="label" data-i18n="remainingTax">Remaining Tax</div>
                         <div class="value" id="currentRemainingTax"></div>
                     </div>
                     <div class="tax-item">
-                        <div class="label">Status</div>
+                        <div class="label" data-i18n="status">Status</div>
                         <div class="value" id="currentStatus"></div>
                     </div>
                 </div>
                 <div id="paymentSection" style="display: none;">
-                    <h3>Make Payment</h3>
+                    <h3 data-i18n="makePayment">Make Payment</h3>
                     <div class="payment-form">
-                        <input type="number" id="paymentAmount" placeholder="Enter amount to pay" min="0">
-                        <button onclick="processPayment()">Pay Now</button>
+                        <input type="number" id="paymentAmount" data-i18n-placeholder="enterPaymentAmount" placeholder="Enter amount to pay" min="0">
+                        <button onclick="processPayment()" data-i18n="payNow">Pay Now</button>
                     </div>
                 </div>
             </div>
 
             <div class="history">
-                <h2>Tax History</h2>
+                <h2 data-i18n="taxHistory">Tax History</h2>
                 <table class="history-table">
                     <thead>
                         <tr>
-                            <th>Year</th>
-                            <th>Income</th>
-                            <th>Expenditure</th>
-                            <th>Tax Owed</th>
-                            <th>Tax Paid</th>
-                            <th>Remaining Tax</th>
-                            <th>Status</th>
+                            <th data-i18n="year">Year</th>
+                            <th data-i18n="income">Income</th>
+                            <th data-i18n="expenditure">Expenditure</th>
+                            <th data-i18n="taxOwed">Tax Owed</th>
+                            <th data-i18n="taxPaid">Tax Paid</th>
+                            <th data-i18n="remainingTax">Remaining Tax</th>
+                            <th data-i18n="status">Status</th>
                         </tr>
                     </thead>
                     <tbody id="historyTableBody"></tbody>
@@ -427,6 +478,60 @@
     <script>
         const MOCK_SERVER_URL = 'http://192.168.1.159:5000';
         let currentPhoneNumber = null;
+        
+        // Set default language to English
+        if (!localStorage.getItem('taxAppLanguage')) {
+            localStorage.setItem('taxAppLanguage', 'en');
+        }
+        
+        // Initialize language selector with stored language or default to English
+        document.addEventListener('DOMContentLoaded', function() {
+            const languageSelector = document.getElementById('languageSelector');
+            if (languageSelector) {
+                const currentLang = localStorage.getItem('taxAppLanguage') || 'en';
+                languageSelector.value = currentLang;
+                currentLanguage = currentLang; // Set the global variable
+                
+                // Use the updateLanguage function to initialize
+                updateLanguage(currentLang);
+            }
+            
+            // Add translation for status text
+            initializeStatusTranslations();
+        });
+        
+        // Initialize translations for dynamic status texts
+        function initializeStatusTranslations() {
+            if (!translations.en.statusPending) {
+                for (const lang in translations) {
+                    // Add status translations
+                    translations[lang].statusPending = translations[lang].statusPending || "pending";
+                    translations[lang].statusPaid = translations[lang].statusPaid || "paid";
+                    translations[lang].statusActive = translations[lang].statusActive || "active";
+                    
+                    // Add missing form translations
+                    translations[lang].accountLogin = translations[lang].accountLogin || "Account Login";
+                    translations[lang].enterPhoneNumber = translations[lang].enterPhoneNumber || "Enter your phone number";
+                    translations[lang].or = translations[lang].or || "or";
+                    translations[lang].createNewAccount = translations[lang].createNewAccount || "Create New Account";
+                    translations[lang].registerNewAccount = translations[lang].registerNewAccount || "Register New Account";
+                    translations[lang].tinLabel = translations[lang].tinLabel || "TIN (Tax Identification Number):";
+                    translations[lang].enterTIN = translations[lang].enterTIN || "Enter your TIN";
+                    translations[lang].register = translations[lang].register || "Register";
+                    translations[lang].backToLogin = translations[lang].backToLogin || "Back to Login";
+                    translations[lang].taxSummary = translations[lang].taxSummary || "Tax Summary";
+                    translations[lang].currentYearSummary = translations[lang].currentYearSummary || "Current Year Summary";
+                    translations[lang].totalTaxOwed = translations[lang].totalTaxOwed || "Total Tax Owed";
+                    translations[lang].makePayment = translations[lang].makePayment || "Make Payment";
+                    translations[lang].enterPaymentAmount = translations[lang].enterPaymentAmount || "Enter amount to pay";
+                    translations[lang].payNow = translations[lang].payNow || "Pay Now";
+                    translations[lang].taxHistory = translations[lang].taxHistory || "Tax History";
+                    translations[lang].taxOwed = translations[lang].taxOwed || "Tax Owed";
+                    translations[lang].logout = translations[lang].logout || "Logout";
+                    translations[lang].login = translations[lang].login || "Login";
+                }
+            }
+        }
 
         // Nigerian tax calculation function
         function calculate_nigeria_tax(taxable_income) {
@@ -485,117 +590,143 @@
                 // Get selected year
                 const selectedYear = parseInt(document.getElementById('yearSelector').value);
                 
-                // Get current year data
-                const response = await fetch(`${MOCK_SERVER_URL}/tax/${currentPhoneNumber}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        year: selectedYear
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error('Server error:', errorData);
-                    throw new Error(errorData.error || 'Failed to load account data');
-                }
-
-                const data = await response.json();
-                console.log('Server response:', data); // Debug log
-
-                if (data.status === 'success' && data.data) {
-                    const taxData = data.data;
-                    const income = parseFloat(taxData.income || 0);
-                    const expenses = parseFloat(taxData.expenses || taxData.expenditure || 0);
-                    
-                    // Calculate taxable income
-                    const taxableIncome = Math.max(0, income - expenses);
-                    
-                    // Calculate tax owed using the Nigerian tax rates
-                    const taxOwed = calculate_nigeria_tax(taxableIncome);
-                    
-                    const taxPaid = parseFloat(taxData.tax_paid || 0);
-                    const remainingTax = Math.max(0, taxOwed - taxPaid);
-                    
-                    // Update status based on tax paid vs tax owed
-                    let status = 'pending';
-                    if (taxPaid >= taxOwed) {
-                        status = 'paid';
-                    } else if (taxPaid > 0) {
-                        status = 'active';
+                // Fetch all tax history from CSV file via API - do this first so we have all data
+                let allUserRecords = [];
+                try {
+                    const csvResponse = await fetch(`${MOCK_SERVER_URL}/admin/users`);
+                    if (!csvResponse.ok) {
+                        throw new Error('Failed to fetch user data');
                     }
+                    
+                    const allUsersData = await csvResponse.json();
+                    console.log('All users data:', allUsersData);
+                    
+                    if (allUsersData.status === 'success' && allUsersData.data) {
+                        // Filter records for the current phone number
+                        allUserRecords = allUsersData.data.filter(record => 
+                            record.phone_number === currentPhoneNumber
+                        );
+                        
+                        // Sort records by year (descending)
+                        allUserRecords.sort((a, b) => parseInt(b.tax_year) - parseInt(a.tax_year));
+                    }
+                } catch (error) {
+                    console.error('Error fetching tax history:', error);
+                }
+                
+                // Process and display all history records
+                const tbody = document.getElementById('historyTableBody');
+                tbody.innerHTML = '';
+                
+                // Find selected year record to display in summary section
+                let selectedYearRecord = null;
+                
+                if (allUserRecords && allUserRecords.length > 0) {
+                    for (const record of allUserRecords) {
+                        const year = parseInt(record.tax_year);
+                        const income = parseFloat(record.income || 0);
+                        const expenses = parseFloat(record.expenditure || 0);
+                        const taxPaid = parseFloat(record.tax_paid || 0);
+                        
+                        // Calculate taxable income and tax owed
+                        const taxableIncome = Math.max(0, income - expenses);
+                        const taxOwed = calculate_nigeria_tax(taxableIncome);
+                        const remainingTax = Math.max(0, taxOwed - taxPaid);
+                        
+                        // Determine status
+                        let status = record.status || 'pending';
+                        if (taxPaid >= taxOwed) {
+                            status = 'paid';
+                        } else if (taxPaid > 0) {
+                            status = 'active';
+                        }
+                        
+                        // Translate status based on current language
+                        const statusText = translations[currentLanguage][`status${status.charAt(0).toUpperCase() + status.slice(1)}`] || status;
 
-                    // Display current year summary
-                    document.getElementById('currentYear').textContent = selectedYear;
-                    document.getElementById('currentIncome').textContent = `₦${income.toLocaleString()}`;
-                    document.getElementById('currentExpenses').textContent = `₦${expenses.toLocaleString()}`;
-                    document.getElementById('currentTaxOwed').textContent = `₦${taxOwed.toLocaleString()}`;
-                    document.getElementById('currentTaxPaid').textContent = `₦${taxPaid.toLocaleString()}`;
-                    document.getElementById('currentRemainingTax').textContent = `₦${remainingTax.toLocaleString()}`;
-                    document.getElementById('currentStatus').textContent = status;
-                    document.getElementById('currentStatus').className = `status-badge status-${status}`;
+                        // Create row for history table
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${year}</td>
+                            <td>₦${income.toLocaleString()}</td>
+                            <td>₦${expenses.toLocaleString()}</td>
+                            <td>₦${taxOwed.toLocaleString()}</td>
+                            <td>₦${taxPaid.toLocaleString()}</td>
+                            <td>₦${remainingTax.toLocaleString()}</td>
+                            <td><span class="tax-status ${status}">${statusText}</span></td>
+                        `;
+                        tbody.appendChild(row);
+                        
+                        // If this is the selected year, save the record data
+                        if (year === selectedYear) {
+                            selectedYearRecord = {
+                                year,
+                                income,
+                                expenses,
+                                taxPaid,
+                                taxableIncome,
+                                taxOwed,
+                                remainingTax,
+                                status,
+                                statusText
+                            };
+                        }
+                    }
+                } else {
+                    console.error('No tax records found for user:', currentPhoneNumber);
+                }
+                
+                // Update the Tax Summary section with selected year data
+                if (selectedYearRecord) {
+                    // Display current year summary using the selected year data
+                    document.getElementById('currentYear').textContent = selectedYearRecord.year;
+                    document.getElementById('currentIncome').textContent = `₦${selectedYearRecord.income.toLocaleString()}`;
+                    document.getElementById('currentExpenses').textContent = `₦${selectedYearRecord.expenses.toLocaleString()}`;
+                    document.getElementById('currentTaxOwed').textContent = `₦${selectedYearRecord.taxOwed.toLocaleString()}`;
+                    document.getElementById('currentTaxPaid').textContent = `₦${selectedYearRecord.taxPaid.toLocaleString()}`;
+                    document.getElementById('currentRemainingTax').textContent = `₦${selectedYearRecord.remainingTax.toLocaleString()}`;
+                    
+                    // Use the same translated status text and class as in the history table
+                    document.getElementById('currentStatus').textContent = selectedYearRecord.statusText;
+                    document.getElementById('currentStatus').className = `tax-status ${selectedYearRecord.status}`;
 
                     // Show/hide payment section based on remaining tax
                     const paymentSection = document.getElementById('paymentSection');
-                    paymentSection.style.display = remainingTax > 0 ? 'block' : 'none';
+                    paymentSection.style.display = selectedYearRecord.remainingTax > 0 ? 'block' : 'none';
                 } else {
-                    console.error('Invalid response format:', data);
-                    throw new Error('Invalid response from server');
-                }
+                    // No data for selected year, make a fallback API call
+                    // Get current year data from tax endpoint
+                    const response = await fetch(`${MOCK_SERVER_URL}/tax/${currentPhoneNumber}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            year: selectedYear
+                        })
+                    });
 
-                // Get historical data
-                const historicalResponse = await fetch(`${MOCK_SERVER_URL}/return/${currentPhoneNumber}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        year: selectedYear
-                    })
-                });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error('Server error:', errorData);
+                        throw new Error(errorData.error || 'Failed to load account data');
+                    }
 
-                if (!historicalResponse.ok) {
-                    const errorData = await historicalResponse.json();
-                    console.error('Historical data error:', errorData);
-                    throw new Error(errorData.error || 'Failed to load historical data');
-                }
+                    const data = await response.json();
+                    console.log('Server response:', data); // Debug log
 
-                const historicalData = await historicalResponse.json();
-                console.log('Historical data response:', historicalData); // Debug log
-
-                if (historicalData.status === 'success' && historicalData.data) {
-                    const tbody = document.getElementById('historyTableBody');
-                    tbody.innerHTML = '';
-
-                    // Get last 5 years of data
-                    const years = Array.from({length: 5}, (_, i) => selectedYear - i);
-                    for (const year of years) {
-                        // Find data for this year in the response
-                        const yearData = {
-                            year,
-                            income: 0,
-                            expenses: 0,
-                            tax_paid: 0,
-                            status: 'pending',
-                            tax_owed: 0
-                        };
-
-                        // If we have data for this year, update the values
-                        if (historicalData.data.year === year) {
-                            yearData.income = parseFloat(historicalData.data.income || 0);
-                            yearData.expenses = parseFloat(historicalData.data.expenses || historicalData.data.expenditure || 0);
-                            yearData.tax_paid = parseFloat(historicalData.data.tax_paid || 0);
-                            yearData.status = historicalData.data.status || 'pending';
-                        }
+                    if (data.status === 'success' && data.data) {
+                        const taxData = data.data;
+                        const income = parseFloat(taxData.income || 0);
+                        const expenses = parseFloat(taxData.expenses || taxData.expenditure || 0);
                         
-                        // Calculate tax owed based on income and expenses
-                        const taxable_income = Math.max(0, yearData.income - yearData.expenses);
-                        yearData.tax_owed = calculate_nigeria_tax(taxable_income);
-
-                        const taxOwed = yearData.tax_owed;
-                        const taxPaid = yearData.tax_paid;
+                        // Calculate taxable income
+                        const taxableIncome = Math.max(0, income - expenses);
+                        
+                        // Calculate tax owed using the Nigerian tax rates
+                        const taxOwed = calculate_nigeria_tax(taxableIncome);
+                        
+                        const taxPaid = parseFloat(taxData.tax_paid || 0);
                         const remainingTax = Math.max(0, taxOwed - taxPaid);
                         
                         // Update status based on tax paid vs tax owed
@@ -606,17 +737,25 @@
                             status = 'active';
                         }
 
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                            <td>${year}</td>
-                            <td>₦${yearData.income.toLocaleString()}</td>
-                            <td>₦${yearData.expenses.toLocaleString()}</td>
-                            <td>₦${taxOwed.toLocaleString()}</td>
-                            <td>₦${taxPaid.toLocaleString()}</td>
-                            <td>₦${remainingTax.toLocaleString()}</td>
-                            <td><span class="status-badge status-${status}">${status}</span></td>
-                        `;
-                        tbody.appendChild(row);
+                        // Display current year summary
+                        document.getElementById('currentYear').textContent = selectedYear;
+                        document.getElementById('currentIncome').textContent = `₦${income.toLocaleString()}`;
+                        document.getElementById('currentExpenses').textContent = `₦${expenses.toLocaleString()}`;
+                        document.getElementById('currentTaxOwed').textContent = `₦${taxOwed.toLocaleString()}`;
+                        document.getElementById('currentTaxPaid').textContent = `₦${taxPaid.toLocaleString()}`;
+                        document.getElementById('currentRemainingTax').textContent = `₦${remainingTax.toLocaleString()}`;
+                        
+                        // Translate status based on current language
+                        const statusText = translations[currentLanguage][`status${status.charAt(0).toUpperCase() + status.slice(1)}`] || status;
+                        document.getElementById('currentStatus').textContent = statusText;
+                        document.getElementById('currentStatus').className = `tax-status ${status}`;
+
+                        // Show/hide payment section based on remaining tax
+                        const paymentSection = document.getElementById('paymentSection');
+                        paymentSection.style.display = remainingTax > 0 ? 'block' : 'none';
+                    } else {
+                        console.error('Invalid response format:', data);
+                        throw new Error('Invalid response from server');
                     }
                 }
             } catch (error) {
@@ -737,6 +876,43 @@
                 }
             } catch (error) {
                 showLocalizedAlert('regFailed', error.message);
+            }
+        }
+
+        // Function to show an alert in the current language
+        function showLocalizedAlert(key, additionalText = '') {
+            const lang = localStorage.getItem('taxAppLanguage') || 'en';
+            let message = translations[lang][key] || translations['en'][key];
+            if (additionalText) {
+                message += additionalText;
+            }
+            alert(message);
+        }
+
+        // Update language function to refresh both Tax Summary and Tax History sections
+        function updateLanguage(lang) {
+            currentLanguage = lang;
+            localStorage.setItem('taxAppLanguage', lang);
+            
+            // Update all i18n elements
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+            
+            // Update placeholders
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-i18n-placeholder');
+                if (translations[lang] && translations[lang][key]) {
+                    element.placeholder = translations[lang][key];
+                }
+            });
+            
+            // Refresh tax data to update status text with new language
+            if (currentPhoneNumber) {
+                loadAccountData();
             }
         }
     </script>

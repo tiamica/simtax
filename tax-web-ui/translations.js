@@ -58,7 +58,37 @@ const translations = {
         enterPassword: "Enter password",
         cancel: "Cancel",
         login: "Login",
-        invalidCredentials: "Invalid username or password"
+        invalidCredentials: "Invalid username or password",
+        
+        // Account page translations
+        accountLogin: "Account Login",
+        enterPhoneNumber: "Enter your phone number",
+        or: "or",
+        createNewAccount: "Create New Account",
+        registerNewAccount: "Register New Account",
+        tinLabel: "TIN (Tax Identification Number):",
+        enterTIN: "Enter your TIN",
+        register: "Register",
+        backToLogin: "Back to Login",
+        taxSummary: "Tax Summary",
+        currentYearSummary: "Current Year Summary",
+        year: "Year",
+        income: "Income",
+        expenditure: "Expenditure",
+        totalTaxOwed: "Total Tax Owed",
+        taxOwed: "Tax Owed",
+        taxPaid: "Tax Paid",
+        remainingTax: "Remaining Tax",
+        makePayment: "Make Payment",
+        enterPaymentAmount: "Enter amount to pay",
+        payNow: "Pay Now",
+        taxHistory: "Tax History",
+        logout: "Logout",
+        
+        // Status translations
+        statusPending: "pending",
+        statusPaid: "paid",
+        statusActive: "active"
     },
     ig: {
         // Login page
@@ -118,7 +148,37 @@ const translations = {
         enterPassword: "Tinye okwuntughe",
         cancel: "Kagbuo",
         login: "Banye",
-        invalidCredentials: "Aha onye ọrụ ma ọ bụ okwuntughe adịghị mma"
+        invalidCredentials: "Aha onye ọrụ ma ọ bụ okwuntughe adịghị mma",
+        
+        // Account page translations
+        accountLogin: "Mbanye Akaụntụ",
+        enterPhoneNumber: "Tinye nọmba ekwentị gị",
+        or: "ma ọ bụ",
+        createNewAccount: "Mepụta Akaụntụ Ọhụrụ",
+        registerNewAccount: "Debanye Akaụntụ Ọhụrụ",
+        tinLabel: "TIN (Nọmba Njirimara Ụtụ Isi):",
+        enterTIN: "Tinye TIN gị",
+        register: "Debanye",
+        backToLogin: "Laghachi na Mbanye",
+        taxSummary: "Nchịkọta Ụtụ Isi",
+        currentYearSummary: "Nchịkọta Afọ Ugbu a",
+        year: "Afọ",
+        income: "Ego Nnata",
+        expenditure: "Mgbapụ",
+        totalTaxOwed: "Ụtụ Isi Enwere Ike Ikwu",
+        taxOwed: "Ụtụ Isi Enwere",
+        taxPaid: "Ụtụ Isi Kwụrụ",
+        remainingTax: "Ụtụ Isi Fọdụrụ",
+        makePayment: "Kwụọ Ụgwọ",
+        enterPaymentAmount: "Tinye ego ịkwụ",
+        payNow: "Kwụọ Ugbua",
+        taxHistory: "Akụkọ Ụtụ Isi",
+        logout: "Pụọ",
+        
+        // Status translations
+        statusPending: "na-eche",
+        statusPaid: "akwụkwọla",
+        statusActive: "dị ndụ"
     },
     yo: {
         // Login page
@@ -178,7 +238,37 @@ const translations = {
         enterPassword: "Tẹ ọrọigbaniwọle",
         cancel: "Fagilee",
         login: "Wọle",
-        invalidCredentials: "Orukọ olumulo tabi ọrọigbaniwọle ko tọ"
+        invalidCredentials: "Orukọ olumulo tabi ọrọigbaniwọle ko tọ",
+        
+        // Account page translations
+        accountLogin: "Iwọle Akanti",
+        enterPhoneNumber: "Tẹ nọmba fonu rẹ",
+        or: "tabi",
+        createNewAccount: "Ṣẹda Akanti Titun",
+        registerNewAccount: "Forukọsilẹ Akanti Titun",
+        tinLabel: "TIN (Nọmba Idanimọ Owo Ori):",
+        enterTIN: "Tẹ TIN rẹ",
+        register: "Forukọsilẹ",
+        backToLogin: "Pada si Iwọle",
+        taxSummary: "Akopọ Owo Ori",
+        currentYearSummary: "Akopọ Odun Lọwọlọwọ",
+        year: "Odun",
+        income: "Owo-wiwọle",
+        expenditure: "Inawo",
+        totalTaxOwed: "Owo Ori Gbogbo ti a jẹ",
+        taxOwed: "Owo Ori ti a jẹ",
+        taxPaid: "Owo Ori ti a san",
+        remainingTax: "Owo Ori ti o ku",
+        makePayment: "Ṣe Isanwo",
+        enterPaymentAmount: "Tẹ iye owo lati san",
+        payNow: "San Bayi",
+        taxHistory: "Itan Owo Ori",
+        logout: "Jade",
+        
+        // Status translations
+        statusPending: "duro",
+        statusPaid: "santan",
+        statusActive: "nṣiṣẹ"
     },
     ha: {
         // Login page
@@ -238,6 +328,36 @@ const translations = {
         enterPassword: "Shigar da kalmar sirri",
         cancel: "Soke",
         login: "Shiga",
-        invalidCredentials: "Sunan mai amfani ko kalmar sirri ba daidai ba"
+        invalidCredentials: "Sunan mai amfani ko kalmar sirri ba daidai ba",
+        
+        // Account page translations
+        accountLogin: "Shiga Asusun",
+        enterPhoneNumber: "Shigar da lambar wayar ku",
+        or: "ko",
+        createNewAccount: "Ƙirƙiri Sabon Asusun",
+        registerNewAccount: "Yi Rajista don Sabon Asusun",
+        tinLabel: "TIN (Lambar Tantancewar Haraji):",
+        enterTIN: "Shigar da TIN dinku",
+        register: "Yi Rajista",
+        backToLogin: "Koma Zuwa Shiga",
+        taxSummary: "Taƙaitaccen Bayanan Haraji",
+        currentYearSummary: "Taƙaitaccen Bayanan Shekarar Yanzu",
+        year: "Shekara",
+        income: "Kudin Shiga",
+        expenditure: "Kudin Kashewa",
+        totalTaxOwed: "Jimlar Haraji da ake Bin",
+        taxOwed: "Haraji da ake Bin",
+        taxPaid: "Haraji da aka Biya",
+        remainingTax: "Haraji da ya Rage",
+        makePayment: "Yi Biyan Kuɗi",
+        enterPaymentAmount: "Shigar da adadin kuɗin da za a biya",
+        payNow: "Biya Yanzu",
+        taxHistory: "Tarihin Haraji",
+        logout: "Fita",
+        
+        // Status translations
+        statusPending: "jiran amincewa",
+        statusPaid: "an biya",
+        statusActive: "aiki"
     }
 }; 
