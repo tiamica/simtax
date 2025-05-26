@@ -480,7 +480,10 @@
     <script src="translations.js"></script>
     <script src="language-switcher.js"></script>
     <script>
-        const MOCK_SERVER_URL = 'http://localhost:5000';
+        // Use a relative URL instead of hardcoded localhost which doesn't work on mobile
+        const MOCK_SERVER_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? 'http://localhost:5000' 
+            : window.location.origin;
         let currentPhoneNumber = null;
         
         // Set default language to English
@@ -548,6 +551,8 @@
                     translations[lang].paymentSuccess = translations[lang].paymentSuccess || "Payment successful";
                     translations[lang].paymentFailed = translations[lang].paymentFailed || "Payment failed";
                     translations[lang].failedPayment = translations[lang].failedPayment || "Failed to process payment";
+                    translations[lang].wantToRegister = translations[lang].wantToRegister || "User not found. Would you like to register?";
+                    translations[lang].serverError = translations[lang].serverError || "Server error";
                 }
             }
         }
@@ -582,7 +587,12 @@
         }
 
         async function login() {
-            const phoneNumber = document.getElementById('phoneNumber').value.trim();
+            let phoneNumber = document.getElementById('phoneNumber').value.trim();
+            
+            // Normalize phone number (remove spaces, dashes, etc.)
+            phoneNumber = phoneNumber.replace(/[^0-9]/g, '');
+            
+            // Ensure phone number is in the right format
             if (!phoneNumber || !/^\d{10,}$/.test(phoneNumber)) {
                 showLocalizedAlert('enterValidPhone');
                 return;
@@ -592,6 +602,8 @@
             let originalText = translations[currentLanguage].login || 'Login';
             
             try {
+                console.log(`Attempting to login with phone: ${phoneNumber} to URL: ${MOCK_SERVER_URL}`);
+                
                 // Display loading state
                 const loginButton = document.querySelector('#loginSection button');
                 if (loginButton) {
@@ -608,8 +620,18 @@
                     }, 10000); // 10 seconds timeout
                 }
                 
+                // Add credentials to ensure cookies are sent
+                const fetchOptions = {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                };
+                
                 // Wrap the fetch in a timeout to handle very slow connections
-                const fetchPromise = fetch(`${MOCK_SERVER_URL}/admin/user/${phoneNumber}`);
+                const fetchPromise = fetch(`${MOCK_SERVER_URL}/admin/user/${phoneNumber}`, fetchOptions);
                 
                 // Race the fetch against a timeout
                 const timeoutPromise = new Promise((_, reject) => 
@@ -624,14 +646,37 @@
                     loginButton.textContent = originalText;
                 }
 
-                if (!response.ok) {
-                    if (response.status === 404) {
-                        throw new Error(translations[currentLanguage].userNotFound || 'User not found');
+                // Log response status for debugging
+                console.log(`Login response status: ${response.status}`);
+                
+                // Handle user not found - show registration option
+                if (response.status === 404) {
+                    showLocalizedAlert('userNotFound');
+                    
+                    // Ask if they want to register
+                    if (confirm(translations[currentLanguage].wantToRegister || 'User not found. Would you like to register?')) {
+                        showRegistrationForm();
+                        const regPhoneNumberInput = document.getElementById('regPhoneNumber');
+                        if (regPhoneNumberInput) regPhoneNumberInput.value = phoneNumber;
                     }
+                    return;
+                }
+
+                if (!response.ok) {
                     throw new Error(`Server error: ${response.status}`);
                 }
 
-                const data = await response.json();
+                // Try to parse the response
+                let data;
+                try {
+                    const responseText = await response.text();
+                    console.log('Response text:', responseText.substring(0, 100) + '...'); // Log first 100 chars
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('JSON parse error:', parseError);
+                    throw new Error(`Failed to parse server response: ${parseError.message}`);
+                }
+
                 if (data.status === 'success') {
                     currentPhoneNumber = phoneNumber;
                     const loginSection = document.getElementById('loginSection');
@@ -665,6 +710,8 @@
                     showLocalizedAlert('networkError', ': ' + error.message);
                 } else if (error.message.includes('timed out')) {
                     showLocalizedAlert('connectionTimeout');
+                } else if (error.message.includes('parse')) {
+                    showLocalizedAlert('serverError', ': Invalid response from server');
                 } else {
                     showLocalizedAlert('failedLogin', ': ' + error.message);
                 }
