@@ -124,9 +124,9 @@ function initializeI18nAttributes() {
         }
         
         // Returns section
-        const returnsSectionTitle = document.querySelector('#yearlyReturns').previousElementSibling;
-        if (returnsSectionTitle) {
-            returnsSectionTitle.setAttribute('data-i18n', 'yearlyReturns');
+        const yearlyReturnsElement = document.querySelector('#yearlyReturns');
+        if (yearlyReturnsElement && yearlyReturnsElement.previousElementSibling) {
+            yearlyReturnsElement.previousElementSibling.setAttribute('data-i18n', 'yearlyReturns');
         }
     }
 } 

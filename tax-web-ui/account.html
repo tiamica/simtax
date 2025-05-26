@@ -885,14 +885,26 @@
         }
 
         async function processPayment() {
-            const amount = parseFloat(document.getElementById('paymentAmount').value);
+            const paymentAmountInput = document.getElementById('paymentAmount');
+            if (!paymentAmountInput) {
+                console.error('Payment amount input not found');
+                return;
+            }
+            
+            const amount = parseFloat(paymentAmountInput.value);
             if (isNaN(amount) || amount <= 0) {
                 showLocalizedAlert('enterValidAmount');
                 return;
             }
 
             try {
-                const selectedYear = parseInt(document.getElementById('yearSelector').value);
+                const yearSelector = document.getElementById('yearSelector');
+                if (!yearSelector) {
+                    console.error('Year selector not found');
+                    return;
+                }
+                
+                const selectedYear = parseInt(yearSelector.value);
                 const response = await fetch(`${MOCK_SERVER_URL}/pay-tax/${currentPhoneNumber}`, {
                     method: 'POST',
                     headers: {
@@ -912,7 +924,10 @@
                 if (data.status === 'success') {
                     // Refresh account data to show updated values
                     await loadAccountData();
-                    document.getElementById('paymentAmount').value = '';
+                    
+                    // Clear payment amount with null check
+                    if (paymentAmountInput) paymentAmountInput.value = '';
+                    
                     showLocalizedAlert('paymentSuccess');
                 }
             } catch (error) {
@@ -925,42 +940,70 @@
             currentPhoneNumber = null;
             
             // Show login section, hide account section
-            document.getElementById('loginSection').style.display = 'block';
-            document.getElementById('accountSection').style.display = 'none';
+            const loginSection = document.getElementById('loginSection');
+            const accountSection = document.getElementById('accountSection');
+            
+            if (loginSection) loginSection.style.display = 'block';
+            if (accountSection) accountSection.style.display = 'none';
             
             // Clear login form
-            document.getElementById('phoneNumber').value = '';
+            const phoneNumberInput = document.getElementById('phoneNumber');
+            if (phoneNumberInput) phoneNumberInput.value = '';
             
-            // Clear all data displays
-            document.getElementById('currentYearSummary').innerHTML = '';
-            document.getElementById('historyTableBody').innerHTML = '';
-            document.getElementById('userInfo').innerHTML = '';
+            // Clear all data displays with null checks
+            const currentYearSummary = document.getElementById('currentYearSummary');
+            const historyTableBody = document.getElementById('historyTableBody');
+            const userInfo = document.getElementById('userInfo');
+            
+            if (currentYearSummary) currentYearSummary.innerHTML = '';
+            if (historyTableBody) historyTableBody.innerHTML = '';
+            if (userInfo) userInfo.innerHTML = '';
             
             // Hide payment section and clear payment amount
             const paymentSection = document.getElementById('paymentSection');
-            paymentSection.style.display = 'none';
-            document.getElementById('paymentAmount').value = '';
+            const paymentAmount = document.getElementById('paymentAmount');
             
-            // Remove any success/error messages
-            const successMessage = paymentSection.querySelector('.success-message');
-            const errorMessage = paymentSection.querySelector('.error-message');
-            if (successMessage) successMessage.remove();
-            if (errorMessage) errorMessage.remove();
+            if (paymentSection) {
+                paymentSection.style.display = 'none';
+                
+                // Remove any success/error messages with null checks
+                const successMessage = paymentSection.querySelector('.success-message');
+                const errorMessage = paymentSection.querySelector('.error-message');
+                
+                if (successMessage) successMessage.remove();
+                if (errorMessage) errorMessage.remove();
+            }
+            
+            if (paymentAmount) paymentAmount.value = '';
         }
 
         function showRegistrationForm() {
-            document.getElementById('loginSection').style.display = 'none';
-            document.getElementById('registrationSection').style.display = 'block';
+            const loginSection = document.getElementById('loginSection');
+            const registrationSection = document.getElementById('registrationSection');
+            
+            if (loginSection) loginSection.style.display = 'none';
+            if (registrationSection) registrationSection.style.display = 'block';
         }
 
         function showLoginForm() {
-            document.getElementById('loginSection').style.display = 'block';
-            document.getElementById('registrationSection').style.display = 'none';
+            const loginSection = document.getElementById('loginSection');
+            const registrationSection = document.getElementById('registrationSection');
+            
+            if (loginSection) loginSection.style.display = 'block';
+            if (registrationSection) registrationSection.style.display = 'none';
         }
 
         async function register() {
-            const phoneNumber = document.getElementById('regPhoneNumber').value.trim();
-            const tin = document.getElementById('regTIN').value.trim();
+            const regPhoneNumberInput = document.getElementById('regPhoneNumber');
+            const regTINInput = document.getElementById('regTIN');
+            
+            if (!regPhoneNumberInput || !regTINInput) {
+                console.error('Registration form elements not found');
+                return;
+            }
+            
+            const phoneNumber = regPhoneNumberInput.value.trim();
+            const tin = regTINInput.value.trim();
 
             if (!phoneNumber || !/^\d{10,}$/.test(phoneNumber)) {
                 showLocalizedAlert('enterValidPhone');
@@ -990,7 +1033,10 @@
                 if (data.status === 'success') {
                     showLocalizedAlert('regSuccess');
                     showLoginForm();
-                    document.getElementById('phoneNumber').value = phoneNumber;
+                    
+                    // Set the phone number in the login form with null check
+                    const phoneNumberInput = document.getElementById('phoneNumber');
+                    if (phoneNumberInput) phoneNumberInput.value = phoneNumber;
                 } else {
                     throw new Error(data.message || translations[currentLanguage].regFailed);
                 }
