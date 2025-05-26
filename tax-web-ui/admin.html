@@ -52,17 +52,24 @@
 
         .tab {
             padding: 0.8rem 1.5rem;
-            background: white;
-            border: none;
+            background: #f0f2f5;
+            border: 1px solid #ddd;
             border-radius: 8px;
             cursor: pointer;
             font-weight: 500;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            color: #333;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            background: #e0e6f0;
         }
 
         .tab.active {
             background: #007bff;
             color: white;
+            border-color: #0056b3;
         }
 
         .panel {
@@ -323,6 +330,21 @@
             border-radius: 4px;
             background-color: white;
         }
+
+        .action-btn {
+            padding: 0.4rem 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            cursor: pointer;
+            margin-right: 0.3rem;
+            color: #333;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background-color: #e9ecef;
+        }
     </style>
 </head>
 <body>
@@ -388,6 +410,21 @@
             <div class="search-bar">
                 <input type="text" id="userSearchInput" data-i18n-placeholder="searchUsers" placeholder="Search users by phone or TIN...">
                 <button onclick="searchUsers()" data-i18n="search">Search</button>
+                <div style="display: flex; margin-left: 10px; gap: 10px;">
+                    <select id="statusFilter" style="padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="all" data-i18n="allStatuses">All Statuses</option>
+                        <option value="active" data-i18n="activeStatus">Active</option>
+                        <option value="pending" data-i18n="pendingStatus">Pending</option>
+                        <option value="paid" data-i18n="paidStatus">Paid</option>
+                    </select>
+                    <select id="yearFilter" style="padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="all" data-i18n="allYears">All Years</option>
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                    </select>
+                </div>
             </div>
 
             <table class="data-table">
@@ -411,8 +448,184 @@
             </div>
         </div>
 
-        <!-- Continue with other panels... -->
+        <div id="payments" class="panel">
+            <h2 data-i18n="paymentsAnalytics">Payments Analytics</h2>
+            
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h3 data-i18n="totalCollected">Total Collected</h3>
+                    <div class="analytics-value">₦21.4M</div>
+                </div>
+                <div class="analytics-card">
+                    <h3 data-i18n="pendingAmount">Pending Amount</h3>
+                    <div class="analytics-value">₦5.2M</div>
+                </div>
+                <div class="analytics-card">
+                    <h3 data-i18n="averagePayment">Average Payment</h3>
+                    <div class="analytics-value">₦125K</div>
+                </div>
+                <div class="analytics-card">
+                    <h3 data-i18n="paymentGrowth">Payment Growth</h3>
+                    <div class="analytics-value">+12.5%</div>
+                </div>
+            </div>
 
+            <div class="chart-container">
+                <h3 data-i18n="paymentsOverYears">Payments Across Years</h3>
+                <canvas id="paymentsYearlyChart"></canvas>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div class="chart-container">
+                    <h3 data-i18n="monthlyTrends">Monthly Payment Trends</h3>
+                    <canvas id="paymentsMonthlyChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3 data-i18n="paymentDistribution">Payment Distribution</h3>
+                    <canvas id="paymentDistributionChart"></canvas>
+                </div>
+            </div>
+
+            <h3 data-i18n="recentTransactions">Recent Transactions</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th data-i18n="dateTime">Date & Time</th>
+                        <th data-i18n="taxpayer">Taxpayer</th>
+                        <th data-i18n="amount">Amount</th>
+                        <th data-i18n="taxYear">Tax Year</th>
+                        <th data-i18n="method">Method</th>
+                        <th data-i18n="status">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2023-06-20 14:35</td>
+                        <td>2348012345678</td>
+                        <td>₦45,000</td>
+                        <td>2023</td>
+                        <td>Bank Transfer</td>
+                        <td><span class="status-badge status-paid">Completed</span></td>
+                    </tr>
+                    <tr>
+                        <td>2023-06-19 11:22</td>
+                        <td>2348023456789</td>
+                        <td>₦78,500</td>
+                        <td>2023</td>
+                        <td>Mobile Money</td>
+                        <td><span class="status-badge status-paid">Completed</span></td>
+                    </tr>
+                    <tr>
+                        <td>2023-06-18 09:45</td>
+                        <td>2348034567890</td>
+                        <td>₦125,000</td>
+                        <td>2023</td>
+                        <td>USSD</td>
+                        <td><span class="status-badge status-active">Processing</span></td>
+                    </tr>
+                    <tr>
+                        <td>2023-06-17 16:10</td>
+                        <td>2348045678901</td>
+                        <td>₦32,750</td>
+                        <td>2023</td>
+                        <td>Bank Transfer</td>
+                        <td><span class="status-badge status-pending">Pending</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="reports" class="panel">
+            <h2 data-i18n="taxReports">Tax Reports</h2>
+            
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h3 data-i18n="totalReports">Total Reports</h3>
+                    <div class="analytics-value">24</div>
+                </div>
+                <div class="analytics-card">
+                    <h3 data-i18n="lastGenerated">Last Generated</h3>
+                    <div class="analytics-value">Today</div>
+                </div>
+                <div class="analytics-card">
+                    <h3 data-i18n="scheduledReports">Scheduled Reports</h3>
+                    <div class="analytics-value">8</div>
+                </div>
+                <div class="analytics-card">
+                    <h3 data-i18n="reportTemplates">Report Templates</h3>
+                    <div class="analytics-value">12</div>
+                </div>
+            </div>
+
+            <!-- Report Example 1: Revenue Breakdown by Region -->
+            <div class="chart-container">
+                <h3 data-i18n="revenueByRegion">Revenue Breakdown by Region</h3>
+                <p style="margin-bottom: 1rem; color: #666;">This report shows the distribution of tax revenue across different regions in the current fiscal year.</p>
+                <canvas id="regionRevenueChart"></canvas>
+            </div>
+
+            <!-- Report Example 2: Compliance Rate Trends -->
+            <div class="chart-container">
+                <h3 data-i18n="complianceTrends">Tax Compliance Rate Trends</h3>
+                <p style="margin-bottom: 1rem; color: #666;">This report tracks taxpayer compliance rates over time, highlighting seasonal patterns and overall trends.</p>
+                <canvas id="complianceChart"></canvas>
+            </div>
+
+            <!-- Report Example 3: Income vs Tax Paid Analysis -->
+            <div class="chart-container">
+                <h3 data-i18n="incomeVsTax">Income vs Tax Paid Analysis</h3>
+                <p style="margin-bottom: 1rem; color: #666;">This report analyzes the relationship between reported income and taxes paid across different income brackets.</p>
+                <canvas id="incomeTaxChart"></canvas>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <h3 data-i18n="generateNewReport">Generate New Report</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                    <div>
+                        <label for="reportType" data-i18n="reportType">Report Type:</label>
+                        <select id="reportType" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; margin-top: 0.5rem;">
+                            <option value="revenue">Revenue Analysis</option>
+                            <option value="compliance">Compliance Analysis</option>
+                            <option value="demographic">Demographic Analysis</option>
+                            <option value="payment">Payment Patterns</option>
+                            <option value="custom">Custom Report</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="reportPeriod" data-i18n="reportPeriod">Time Period:</label>
+                        <select id="reportPeriod" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; margin-top: 0.5rem;">
+                            <option value="current">Current Year</option>
+                            <option value="last">Last Year</option>
+                            <option value="5years">Last 5 Years</option>
+                            <option value="custom">Custom Period</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="reportFormat" data-i18n="reportFormat">Format:</label>
+                        <select id="reportFormat" style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 4px; margin-top: 0.5rem;">
+                            <option value="pdf">PDF</option>
+                            <option value="excel">Excel</option>
+                            <option value="csv">CSV</option>
+                            <option value="dashboard">Dashboard View</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-primary" style="margin-top: 1rem;" data-i18n="generateReport">Generate Report</button>
+            </div>
+        </div>
+
+        <div id="settings" class="panel">
+            <h2 data-i18n="systemSettings">System Settings</h2>
+            
+            <div style="text-align: center; padding: 4rem 2rem; background-color: #f9f9f9; border-radius: 8px; margin: 2rem 0;">
+                <img src="Fourier-Analytics-Logo.png" alt="Fourier Analytics Logo" style="width: 100px; margin-bottom: 1rem; opacity: 0.6;">
+                <h3 style="margin-bottom: 1rem; color: #666;" data-i18n="comingSoon">Coming Soon</h3>
+                <p style="color: #888; max-width: 600px; margin: 0 auto;" data-i18n="settingsDescription">
+                    The settings section is currently under development. In the future, you will be able to configure system preferences, 
+                    manage user roles and permissions, customize notifications, and set up automated reporting schedules.
+                </p>
+            </div>
+        </div>
     </div>
 
     <script src="translations.js"></script>
@@ -728,6 +941,190 @@
             });
         }
         
+        // Initialize payments charts
+        function initPaymentsCharts() {
+            // Payments across years chart
+            if (document.getElementById('paymentsYearlyChart')) {
+                const yearlyCtx = document.getElementById('paymentsYearlyChart').getContext('2d');
+                const yearlyChart = new Chart(yearlyCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['2018', '2019', '2020', '2021', '2022', '2023'],
+                        datasets: [{
+                            label: 'Payments (₦ millions)',
+                            data: [8.4, 10.2, 9.5, 12.8, 15.6, 21.4],
+                            backgroundColor: '#17a2b8'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Amount (₦ millions)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Monthly payment trends chart
+            if (document.getElementById('paymentsMonthlyChart')) {
+                const monthlyCtx = document.getElementById('paymentsMonthlyChart').getContext('2d');
+                const monthlyChart = new Chart(monthlyCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                        datasets: [{
+                            label: '2022',
+                            data: [1.2, 1.3, 1.8, 1.1, 1.4, 1.5, 1.2, 1.3, 1.4, 1.6, 1.7, 1.1],
+                            borderColor: '#6c757d',
+                            backgroundColor: 'transparent',
+                            tension: 0.4
+                        }, {
+                            label: '2023',
+                            data: [1.5, 1.7, 2.1, 1.8, 2.2, 2.5, 2.3, 2.1, 2.4, 2.6, 2.8, 2.7],
+                            borderColor: '#007bff',
+                            backgroundColor: 'transparent',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+            
+            // Payment distribution chart (pie chart)
+            if (document.getElementById('paymentDistributionChart')) {
+                const distributionCtx = document.getElementById('paymentDistributionChart').getContext('2d');
+                const distributionChart = new Chart(distributionCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Bank Transfer', 'Mobile Money', 'USSD', 'Cash', 'Other'],
+                        datasets: [{
+                            data: [45, 30, 15, 7, 3],
+                            backgroundColor: [
+                                '#007bff',
+                                '#28a745',
+                                '#ffc107',
+                                '#dc3545',
+                                '#6c757d'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right'
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        // Initialize reports charts
+        function initReportsCharts() {
+            // Revenue by region chart
+            if (document.getElementById('regionRevenueChart')) {
+                const regionCtx = document.getElementById('regionRevenueChart').getContext('2d');
+                const regionChart = new Chart(regionCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['South West', 'South East', 'South South', 'North Central', 'North West', 'North East'],
+                        datasets: [{
+                            label: 'Revenue (₦ millions)',
+                            data: [4.2, 3.5, 3.8, 2.9, 3.2, 2.4],
+                            backgroundColor: '#20c997'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y'
+                    }
+                });
+            }
+            
+            // Compliance rate trends chart
+            if (document.getElementById('complianceChart')) {
+                const complianceCtx = document.getElementById('complianceChart').getContext('2d');
+                const complianceChart = new Chart(complianceCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['2018', '2019', '2020', '2021', '2022', '2023'],
+                        datasets: [{
+                            label: 'Compliance Rate (%)',
+                            data: [62, 65, 63, 68, 72, 78],
+                            borderColor: '#fd7e14',
+                            backgroundColor: 'rgba(253, 126, 20, 0.1)',
+                            tension: 0.3,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                min: 50,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Income vs Tax Paid Analysis chart
+            if (document.getElementById('incomeTaxChart')) {
+                const incomeTaxCtx = document.getElementById('incomeTaxChart').getContext('2d');
+                const incomeTaxChart = new Chart(incomeTaxCtx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: 'Taxpayers',
+                            data: [
+                                {x: 0.5, y: 0.04}, {x: 0.8, y: 0.06}, {x: 1.2, y: 0.09},
+                                {x: 1.5, y: 0.12}, {x: 1.8, y: 0.15}, {x: 2.2, y: 0.19},
+                                {x: 2.5, y: 0.22}, {x: 2.8, y: 0.26}, {x: 3.2, y: 0.31},
+                                {x: 3.5, y: 0.35}, {x: 4.0, y: 0.42}, {x: 4.5, y: 0.48},
+                                {x: 5.0, y: 0.56}, {x: 5.5, y: 0.65}, {x: 6.0, y: 0.72},
+                                {x: 7.0, y: 0.85}, {x: 8.0, y: 1.05}, {x: 9.0, y: 1.25},
+                                {x: 10.0, y: 1.45}
+                            ],
+                            backgroundColor: '#6f42c1'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Annual Income (₦ millions)'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Tax Paid (₦ millions)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
         // Update language selector to handle changes
         function setupLanguageSelector() {
             document.getElementById('languageSelector').addEventListener('change', function() {
@@ -749,11 +1146,17 @@
             // Initialize charts
             initCharts();
             
-            // Populate user table with dummy data
-            populateUserTable();
+            // Initialize payments charts
+            initPaymentsCharts();
+            
+            // Initialize reports charts
+            initReportsCharts();
             
             // Setup language selector
             setupLanguageSelector();
+            
+            // Populate user table
+            populateUserTable();
         });
     </script>
 </body>
