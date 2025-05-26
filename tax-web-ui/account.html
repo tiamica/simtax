@@ -533,6 +533,21 @@
                     translations[lang].taxOwed = translations[lang].taxOwed || "Tax Owed";
                     translations[lang].logout = translations[lang].logout || "Logout";
                     translations[lang].login = translations[lang].login || "Login";
+                    
+                    // Add error message translations
+                    translations[lang].userNotFound = translations[lang].userNotFound || "User not found";
+                    translations[lang].networkError = translations[lang].networkError || "Network error";
+                    translations[lang].connectionTimeout = translations[lang].connectionTimeout || "Connection timed out. Please try again";
+                    translations[lang].failedLogin = translations[lang].failedLogin || "Failed to login";
+                    translations[lang].failedLoadData = translations[lang].failedLoadData || "Failed to load account data";
+                    translations[lang].enterValidPhone = translations[lang].enterValidPhone || "Please enter a valid phone number";
+                    translations[lang].enterValidTIN = translations[lang].enterValidTIN || "Please enter a valid TIN";
+                    translations[lang].regSuccess = translations[lang].regSuccess || "Registration successful";
+                    translations[lang].regFailed = translations[lang].regFailed || "Registration failed";
+                    translations[lang].enterValidAmount = translations[lang].enterValidAmount || "Please enter a valid amount";
+                    translations[lang].paymentSuccess = translations[lang].paymentSuccess || "Payment successful";
+                    translations[lang].paymentFailed = translations[lang].paymentFailed || "Payment failed";
+                    translations[lang].failedPayment = translations[lang].failedPayment || "Failed to process payment";
                 }
             }
         }
@@ -574,25 +589,95 @@
             }
 
             try {
-                const response = await fetch(`${MOCK_SERVER_URL}/admin/user/${phoneNumber}`);
-                if (!response.ok) throw new Error(translations[currentLanguage].userNotFound);
+                // Display loading state
+                const loginButton = document.querySelector('#loginSection button');
+                if (loginButton) {
+                    const originalText = loginButton.textContent;
+                    loginButton.disabled = true;
+                    loginButton.textContent = '...';
+                    
+                    // Re-enable after timeout (in case of network issues)
+                    setTimeout(() => {
+                        if (loginButton) {
+                            loginButton.disabled = false;
+                            loginButton.textContent = originalText;
+                        }
+                    }, 10000); // 10 seconds timeout
+                }
+                
+                // Wrap the fetch in a timeout to handle very slow connections
+                const fetchPromise = fetch(`${MOCK_SERVER_URL}/admin/user/${phoneNumber}`);
+                
+                // Race the fetch against a timeout
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Connection timed out')), 15000)
+                );
+                
+                const response = await Promise.race([fetchPromise, timeoutPromise]);
+                
+                // Reset button state
+                if (loginButton) {
+                    loginButton.disabled = false;
+                    loginButton.textContent = originalText;
+                }
+
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error(translations[currentLanguage].userNotFound || 'User not found');
+                    }
+                    throw new Error(`Server error: ${response.status}`);
+                }
 
                 const data = await response.json();
                 if (data.status === 'success') {
                     currentPhoneNumber = phoneNumber;
-                    document.getElementById('loginSection').style.display = 'none';
-                    document.getElementById('accountSection').style.display = 'block';
+                    const loginSection = document.getElementById('loginSection');
+                    const accountSection = document.getElementById('accountSection');
+                    
+                    if (loginSection) loginSection.style.display = 'none';
+                    if (accountSection) accountSection.style.display = 'block';
+                    
+                    // Update user info display
+                    const userInfo = document.getElementById('userInfo');
+                    if (userInfo) {
+                        userInfo.textContent = phoneNumber;
+                    }
+                    
                     loadAccountData();
+                } else {
+                    throw new Error(data.message || 'Login failed');
                 }
             } catch (error) {
-                showLocalizedAlert('failedLogin', error.message);
+                console.error('Login error:', error);
+                
+                // Reset button state
+                const loginButton = document.querySelector('#loginSection button');
+                if (loginButton) {
+                    const originalText = translations[currentLanguage].login || 'Login';
+                    loginButton.disabled = false;
+                    loginButton.textContent = originalText;
+                }
+                
+                // Show appropriate error message
+                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    showLocalizedAlert('networkError', ': ' + error.message);
+                } else if (error.message.includes('timed out')) {
+                    showLocalizedAlert('connectionTimeout');
+                } else {
+                    showLocalizedAlert('failedLogin', ': ' + error.message);
+                }
             }
         }
 
         async function loadAccountData() {
             try {
                 // Get selected year
-                const selectedYear = parseInt(document.getElementById('yearSelector').value);
+                const yearSelector = document.getElementById('yearSelector');
+                if (!yearSelector) {
+                    console.error('Year selector element not found');
+                    return;
+                }
+                const selectedYear = parseInt(yearSelector.value);
                 
                 // Fetch all tax history from CSV file via API - do this first so we have all data
                 let allUserRecords = [];
@@ -620,6 +705,10 @@
                 
                 // Process and display all history records
                 const tbody = document.getElementById('historyTableBody');
+                if (!tbody) {
+                    console.error('History table body element not found');
+                    return;
+                }
                 tbody.innerHTML = '';
                 
                 // Find selected year record to display in summary section
@@ -647,7 +736,7 @@
                         
                         // Translate status based on current language
                         const statusText = translations[currentLanguage][`status${status.charAt(0).toUpperCase() + status.slice(1)}`] || status;
-
+                        
                         // Create row for history table
                         const row = document.createElement('tr');
                         row.innerHTML = `
@@ -682,21 +771,34 @@
                 
                 // Update the Tax Summary section with selected year data
                 if (selectedYearRecord) {
-                    // Display current year summary using the selected year data
-                    document.getElementById('currentYear').textContent = selectedYearRecord.year;
-                    document.getElementById('currentIncome').textContent = `₦${selectedYearRecord.income.toLocaleString()}`;
-                    document.getElementById('currentExpenses').textContent = `₦${selectedYearRecord.expenses.toLocaleString()}`;
-                    document.getElementById('currentTaxOwed').textContent = `₦${selectedYearRecord.taxOwed.toLocaleString()}`;
-                    document.getElementById('currentTaxPaid').textContent = `₦${selectedYearRecord.taxPaid.toLocaleString()}`;
-                    document.getElementById('currentRemainingTax').textContent = `₦${selectedYearRecord.remainingTax.toLocaleString()}`;
+                    // Get all the elements we need to update, with null checks
+                    const currentYearEl = document.getElementById('currentYear');
+                    const currentIncomeEl = document.getElementById('currentIncome');
+                    const currentExpensesEl = document.getElementById('currentExpenses');
+                    const currentTaxOwedEl = document.getElementById('currentTaxOwed');
+                    const currentTaxPaidEl = document.getElementById('currentTaxPaid');
+                    const currentRemainingTaxEl = document.getElementById('currentRemainingTax');
+                    const currentStatusEl = document.getElementById('currentStatus');
+                    const paymentSectionEl = document.getElementById('paymentSection');
+                    
+                    // Only update elements that exist
+                    if (currentYearEl) currentYearEl.textContent = selectedYearRecord.year;
+                    if (currentIncomeEl) currentIncomeEl.textContent = `₦${selectedYearRecord.income.toLocaleString()}`;
+                    if (currentExpensesEl) currentExpensesEl.textContent = `₦${selectedYearRecord.expenses.toLocaleString()}`;
+                    if (currentTaxOwedEl) currentTaxOwedEl.textContent = `₦${selectedYearRecord.taxOwed.toLocaleString()}`;
+                    if (currentTaxPaidEl) currentTaxPaidEl.textContent = `₦${selectedYearRecord.taxPaid.toLocaleString()}`;
+                    if (currentRemainingTaxEl) currentRemainingTaxEl.textContent = `₦${selectedYearRecord.remainingTax.toLocaleString()}`;
                     
                     // Use the same translated status text and class as in the history table
-                    document.getElementById('currentStatus').textContent = selectedYearRecord.statusText;
-                    document.getElementById('currentStatus').className = `tax-status ${selectedYearRecord.status}`;
+                    if (currentStatusEl) {
+                        currentStatusEl.textContent = selectedYearRecord.statusText;
+                        currentStatusEl.className = `tax-status ${selectedYearRecord.status}`;
+                    }
 
                     // Show/hide payment section based on remaining tax
-                    const paymentSection = document.getElementById('paymentSection');
-                    paymentSection.style.display = selectedYearRecord.remainingTax > 0 ? 'block' : 'none';
+                    if (paymentSectionEl) {
+                        paymentSectionEl.style.display = selectedYearRecord.remainingTax > 0 ? 'block' : 'none';
+                    }
                 } else {
                     // No data for selected year, make a fallback API call
                     // Get current year data from tax endpoint
@@ -741,22 +843,36 @@
                             status = 'active';
                         }
 
-                        // Display current year summary
-                        document.getElementById('currentYear').textContent = selectedYear;
-                        document.getElementById('currentIncome').textContent = `₦${income.toLocaleString()}`;
-                        document.getElementById('currentExpenses').textContent = `₦${expenses.toLocaleString()}`;
-                        document.getElementById('currentTaxOwed').textContent = `₦${taxOwed.toLocaleString()}`;
-                        document.getElementById('currentTaxPaid').textContent = `₦${taxPaid.toLocaleString()}`;
-                        document.getElementById('currentRemainingTax').textContent = `₦${remainingTax.toLocaleString()}`;
+                        // Get all the elements we need to update, with null checks
+                        const currentYearEl = document.getElementById('currentYear');
+                        const currentIncomeEl = document.getElementById('currentIncome');
+                        const currentExpensesEl = document.getElementById('currentExpenses');
+                        const currentTaxOwedEl = document.getElementById('currentTaxOwed');
+                        const currentTaxPaidEl = document.getElementById('currentTaxPaid');
+                        const currentRemainingTaxEl = document.getElementById('currentRemainingTax');
+                        const currentStatusEl = document.getElementById('currentStatus');
+                        const paymentSectionEl = document.getElementById('paymentSection');
+                        
+                        // Only update elements that exist
+                        if (currentYearEl) currentYearEl.textContent = selectedYear;
+                        if (currentIncomeEl) currentIncomeEl.textContent = `₦${income.toLocaleString()}`;
+                        if (currentExpensesEl) currentExpensesEl.textContent = `₦${expenses.toLocaleString()}`;
+                        if (currentTaxOwedEl) currentTaxOwedEl.textContent = `₦${taxOwed.toLocaleString()}`;
+                        if (currentTaxPaidEl) currentTaxPaidEl.textContent = `₦${taxPaid.toLocaleString()}`;
+                        if (currentRemainingTaxEl) currentRemainingTaxEl.textContent = `₦${remainingTax.toLocaleString()}`;
                         
                         // Translate status based on current language
                         const statusText = translations[currentLanguage][`status${status.charAt(0).toUpperCase() + status.slice(1)}`] || status;
-                        document.getElementById('currentStatus').textContent = statusText;
-                        document.getElementById('currentStatus').className = `tax-status ${status}`;
+                        
+                        if (currentStatusEl) {
+                            currentStatusEl.textContent = statusText;
+                            currentStatusEl.className = `tax-status ${status}`;
+                        }
 
                         // Show/hide payment section based on remaining tax
-                        const paymentSection = document.getElementById('paymentSection');
-                        paymentSection.style.display = remainingTax > 0 ? 'block' : 'none';
+                        if (paymentSectionEl) {
+                            paymentSectionEl.style.display = remainingTax > 0 ? 'block' : 'none';
+                        }
                     } else {
                         console.error('Invalid response format:', data);
                         throw new Error('Invalid response from server');

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
     <link rel="manifest" href="./site.webmanifest">
     <title data-i18n="mobileSimulator">Tax App Mobile Simulator</title>
     <link rel="stylesheet" href="styles.css">
@@ -394,7 +394,27 @@
             }
 
             try {
-                const response = await fetch(`${MOCK_SERVER_URL}/admin/user/${phoneNumber}`);
+                // Show loading state
+                addMessage('Logging in...');
+                
+                // Wrap the fetch in a timeout to handle very slow connections
+                const fetchPromise = fetch(`${MOCK_SERVER_URL}/admin/user/${phoneNumber}`);
+                
+                // Race the fetch against a timeout
+                const timeoutPromise = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Connection timed out')), 15000)
+                );
+                
+                let response;
+                try {
+                    response = await Promise.race([fetchPromise, timeoutPromise]);
+                } catch (networkError) {
+                    if (networkError.message.includes('timed out')) {
+                        throw new Error('Connection timed out. Please try again.');
+                    } else {
+                        throw new Error(`Network error: ${networkError.message}`);
+                    }
+                }
                 
                 if (response.status === 404) {
                     // User not found, show registration message
@@ -408,7 +428,9 @@
                     return;
                 }
 
-                if (!response.ok) throw new Error('Login failed');
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
 
                 const data = await response.json();
                 if (data.status === 'success') {
@@ -419,9 +441,18 @@
                     document.getElementById('logoutBtn').style.display = 'block';
                     addMessage(`Welcome back ${phoneNumber}! You can now use the available commands.`);
                     addMessage(`Current tax year is set to: ${currentTaxYear}. Use YEAR command to change it.`);
+                } else {
+                    throw new Error(data.message || 'Login failed');
                 }
             } catch (error) {
-                addMessage('Failed to login: ' + error.message);
+                console.error('Login error:', error);
+                addMessage(`Error: ${error.message}`);
+                
+                // Clear any "logging in" message
+                const loggedInSection = document.getElementById('loggedInSection');
+                if (loggedInSection) {
+                    loggedInSection.style.display = 'none';
+                }
             }
         }
 
