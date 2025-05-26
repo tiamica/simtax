@@ -138,4 +138,4 @@ These accounts have pre-filled data for testing all features of the system.
    ```
 
 7. View in Web Interface:
-   Open `http://localhost:5001` in browser 
+   Open `http://localhost` in browser 
