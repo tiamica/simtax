@@ -393,6 +393,16 @@
                 return;
             }
 
+            // Store button text and references outside try/catch for access throughout the function
+            const loginButton = document.querySelector('#loginSection button');
+            let originalButtonText = 'Login';
+            
+            if (loginButton) {
+                originalButtonText = loginButton.textContent;
+                loginButton.disabled = true;
+                loginButton.textContent = '...';
+            }
+
             try {
                 // Show loading state
                 addMessage('Logging in...');
@@ -447,6 +457,13 @@
             } catch (error) {
                 console.error('Login error:', error);
                 addMessage(`Error: ${error.message}`);
+                
+                // Reset button state if login section still exists and hasn't been replaced
+                const loginSection = document.getElementById('loginSection');
+                if (loginSection && loginButton && !loginSection.querySelector('.logged-in')) {
+                    loginButton.disabled = false;
+                    loginButton.textContent = originalButtonText;
+                }
                 
                 // Clear any "logging in" message
                 const loggedInSection = document.getElementById('loggedInSection');

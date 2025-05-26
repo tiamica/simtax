@@ -588,11 +588,14 @@
                 return;
             }
 
+            // Store button original text in outer scope so it's available throughout the function
+            let originalText = translations[currentLanguage].login || 'Login';
+            
             try {
                 // Display loading state
                 const loginButton = document.querySelector('#loginSection button');
                 if (loginButton) {
-                    const originalText = loginButton.textContent;
+                    originalText = loginButton.textContent; // Store the original text
                     loginButton.disabled = true;
                     loginButton.textContent = '...';
                     
@@ -653,9 +656,8 @@
                 // Reset button state
                 const loginButton = document.querySelector('#loginSection button');
                 if (loginButton) {
-                    const originalText = translations[currentLanguage].login || 'Login';
                     loginButton.disabled = false;
-                    loginButton.textContent = originalText;
+                    loginButton.textContent = originalText; // Use the stored original text
                 }
                 
                 // Show appropriate error message
