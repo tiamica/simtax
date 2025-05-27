@@ -6,7 +6,8 @@ After=network.target
 User=taxapp
 Group=taxapp
 WorkingDirectory=/opt/taxapp
-ExecStart=/usr/bin/python3 /opt/taxapp/mockserver_production.py
+# Modified to run without SSL since Apache handles that
+ExecStart=/usr/bin/python3 -c "import sys; sys.argv = ['', '--no-ssl']; exec(open('/opt/taxapp/mockserver_production.py').read())"
 Restart=always
 RestartSec=10
 Environment=PYTHONUNBUFFERED=1

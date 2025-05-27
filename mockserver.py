@@ -8,7 +8,32 @@ import csv
 import os
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+
+# Enhanced CORS configuration for Apache2 proxying
+cors_config = {
+    'origins': ['*'],  # Allow all origins or specify them: ['https://yourdomain.com', 'http://localhost:3000']
+    'methods': ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    'allow_headers': ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+    'expose_headers': ['Content-Type', 'X-Total-Count'],
+    'supports_credentials': True,
+    'max_age': 600,  # Cache preflight requests for 10 minutes
+    'vary_header': True,  # Add Vary: Origin header
+}
+CORS(app, **cors_config)
+
+# Fix for proxy headers when behind Apache2
+class ReverseProxied(object):
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, environ, start_response):
+        scheme = environ.get('HTTP_X_FORWARDED_PROTO')
+        if scheme:
+            environ['wsgi.url_scheme'] = scheme
+        return self.app(environ, start_response)
+
+app.wsgi_app = ReverseProxied(app.wsgi_app)
+
 tax_app = TaxApp()
 
 CSV_FILE = 'data/tax_data.csv'
@@ -588,6 +613,24 @@ def index():
         'message': 'Mock server is running'
     })
 
+@app.route('/health')
+def health_check():
+    """Health check endpoint for monitoring"""
+    try:
+        # Check if we can read/write to the CSV file
+        test_records = read_csv()
+        return jsonify({
+            'status': 'healthy',
+            'db_records': len(test_records),
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
 # Add a function to ensure CSV file exists with correct headers
 def ensure_csv_exists():
     if not os.path.exists('data'):
@@ -602,6 +645,18 @@ def ensure_csv_exists():
 
 # Call ensure_csv_exists when the server starts
 if __name__ == '__main__':
+    import sys
+    
+    # Ensure CSV file exists
     ensure_csv_exists()
-    print("Starting mock server on http://localhost:5000")
-    app.run(host='0.0.0.0', port=5000) 
+    
+    # Check for --no-ssl flag
+    use_proxy = '--behind-proxy' in sys.argv
+    
+    if use_proxy:
+        print("Starting in proxy mode (for use behind Apache2)")
+        # Bind only to localhost when running behind Apache
+        app.run(host='127.0.0.1', port=5000)
+    else:
+        print("Starting mock server on http://localhost:5000")
+        app.run(host='0.0.0.0', port=5000) 

@@ -9,7 +9,32 @@ import os
 import ssl
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+
+# Enhanced CORS configuration for Apache2 proxying
+cors_config = {
+    'origins': ['*'],  # Allow all origins or specify them: ['https://yourdomain.com', 'http://localhost:3000']
+    'methods': ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    'allow_headers': ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+    'expose_headers': ['Content-Type', 'X-Total-Count'],
+    'supports_credentials': True,
+    'max_age': 600,  # Cache preflight requests for 10 minutes
+    'vary_header': True,  # Add Vary: Origin header
+}
+CORS(app, **cors_config)
+
+# Fix for proxy headers when behind Apache2
+class ReverseProxied(object):
+    def __init__(self, app):
+        self.app = app
+
+    def __call__(self, environ, start_response):
+        scheme = environ.get('HTTP_X_FORWARDED_PROTO')
+        if scheme:
+            environ['wsgi.url_scheme'] = scheme
+        return self.app(environ, start_response)
+
+app.wsgi_app = ReverseProxied(app.wsgi_app)
+
 tax_app = TaxApp()
 
 # Configuration for production
@@ -733,14 +758,18 @@ def ensure_csv_exists():
 
 # Main entry point
 if __name__ == '__main__':
+    import sys
+    
     # Setup logging
     setup_logging()
     
     # Ensure CSV file exists
     ensure_csv_exists()
     
-    # Check if SSL certificates exist
-    if os.path.exists(CERT_FILE) and os.path.exists(KEY_FILE):
+    # Check for --no-ssl flag
+    use_ssl = '--no-ssl' not in sys.argv
+    
+    if use_ssl and os.path.exists(CERT_FILE) and os.path.exists(KEY_FILE):
         app.logger.info(f"Starting production mock server with HTTPS on port 5000")
         print("Starting production mock server with HTTPS on port 5000")
         
@@ -751,6 +780,15 @@ if __name__ == '__main__':
         # Run with SSL context
         app.run(host='0.0.0.0', port=5000, ssl_context=context)
     else:
-        app.logger.warning(f"SSL certificates not found. Starting without HTTPS (not recommended for production)")
-        print("WARNING: SSL certificates not found. Starting without HTTPS (not recommended for production)")
-        app.run(host='0.0.0.0', port=5000) 
+        if use_ssl:
+            app.logger.warning(f"SSL certificates not found. Starting without HTTPS (not recommended for direct exposure)")
+            print("WARNING: SSL certificates not found. Starting without HTTPS (not recommended for direct exposure)")
+        else:
+            app.logger.info(f"Starting in non-SSL mode (for use behind a proxy like Apache)")
+            print("Starting in non-SSL mode (for use behind a proxy like Apache)")
+        
+        # Bind only to localhost when running behind Apache
+        if '--no-ssl' in sys.argv:
+            app.run(host='127.0.0.1', port=5000)
+        else:
+            app.run(host='0.0.0.0', port=5000) 

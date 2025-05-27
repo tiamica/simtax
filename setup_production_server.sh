@@ -16,7 +16,11 @@ echo "Setting up Tax App Mock Server in production mode..."
 echo "Updating system and installing dependencies..."
 apt-get update
 apt-get upgrade -y
-apt-get install -y python3 python3-pip python3-venv nginx certbot python3-certbot-nginx
+apt-get install -y python3 python3-pip python3-venv nginx certbot python3-certbot-nginx apache2 libapache2-mod-proxy-html libxml2-dev
+
+# Enable required Apache modules
+echo "Enabling required Apache modules..."
+a2enmod ssl proxy proxy_http proxy_ajp rewrite deflate headers proxy_balancer proxy_connect proxy_html
 
 # Create application user
 echo "Creating application user..."
@@ -65,11 +69,17 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
   -out /etc/ssl/certs/mockserver.crt \
   -subj "/C=NG/ST=Lagos/L=Lagos/O=Fourier Analytics/OU=IT/CN=34.173.20.218"
 
+# Configure Apache2
+echo "Configuring Apache2..."
+cp mockserver-apache.conf /etc/apache2/sites-available/mockserver.conf
+a2ensite mockserver
+systemctl restart apache2
+
 # Configure firewall to allow HTTPS traffic
 echo "Configuring firewall..."
 ufw allow 22/tcp  # SSH
-ufw allow 443/tcp  # HTTPS
-ufw allow 5000/tcp  # Mock server port
+ufw allow 80/tcp  # HTTP (for redirects)
+ufw allow 443/tcp # HTTPS
 ufw --force enable
 
 # Start the service
@@ -79,7 +89,9 @@ systemctl start mockserver.service
 # Display status
 echo "Service status:"
 systemctl status mockserver.service
+systemctl status apache2
 
 echo "Setup complete!"
-echo "Mock server should be running on https://34.173.20.218:5000"
-echo "Check /var/log/syslog or journalctl -u mockserver.service for logs" 
+echo "Mock server should be running on https://34.173.20.218/"
+echo "Check /var/log/syslog or journalctl -u mockserver.service for logs"
+echo "Apache logs are in /var/log/apache2/" 
