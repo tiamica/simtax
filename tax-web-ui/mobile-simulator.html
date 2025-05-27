@@ -283,10 +283,35 @@
     <script src="translations.js"></script>
     <script src="language-switcher.js"></script>
     <script>
-        // Use a relative URL instead of hardcoded localhost which doesn't work on mobile
-        const MOCK_SERVER_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-            ? 'http://localhost:5000' 
-            : window.location.origin;
+        // Define more robust server URL detection with multiple fallbacks
+        function getServerUrl() {
+            // Log all available info for debugging
+            console.log('Location info:', {
+                hostname: window.location.hostname,
+                origin: window.location.origin,
+                href: window.location.href,
+                protocol: window.location.protocol
+            });
+            
+            // Try different approaches to get a working server URL
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                console.log('Using localhost URL');
+                return 'http://localhost:5000';
+            } else if (window.location.hostname.match(/^192\.168\./)) {
+                console.log('Using local IP URL');
+                return `http://${window.location.hostname}:5000`;
+            } else if (window.location.hostname.match(/^172\.|^10\./)) {
+                console.log('Using private network IP URL');
+                return `http://${window.location.hostname}:5000`;
+            } else {
+                // Use current origin as fallback
+                console.log('Using origin as fallback URL');
+                return window.location.origin;
+            }
+        }
+
+        // Use the function to determine the server URL
+        const MOCK_SERVER_URL = getServerUrl();
         let currentPhoneNumber = null;
         let currentTaxYear = new Date().getFullYear(); // Track the current tax year
 
@@ -318,21 +343,33 @@
             });
         });
 
-        function addMessage(message, isSent = false) {
-    const chatContainer = document.getElementById('responseContainer');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `message-bubble ${isSent ? 'message-sent' : 'message-received'}`;
-    
-    // Handle both string messages and message objects
-    if (typeof message === 'object' && message !== null) {
-        messageDiv.textContent = message.message || JSON.stringify(message);
-    } else {
-        messageDiv.textContent = message;
-    }
-    
-    chatContainer.appendChild(messageDiv);
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-}
+        function addMessage(message, isSent = false, msgId = null) {
+            const chatContainer = document.getElementById('responseContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message-bubble ${isSent ? 'message-sent' : 'message-received'}`;
+            
+            // Add ID if provided for potential removal later
+            if (msgId) {
+                messageDiv.id = `msg-${msgId}`;
+            }
+            
+            // Handle both string messages and message objects
+            if (typeof message === 'object' && message !== null) {
+                messageDiv.textContent = message.message || JSON.stringify(message);
+            } else {
+                messageDiv.textContent = message;
+            }
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function removeMessage(msgId) {
+            const message = document.getElementById(`msg-${msgId}`);
+            if (message) {
+                message.remove();
+            }
+        }
 
         function logout() {
             currentPhoneNumber = null;
@@ -416,33 +453,61 @@
                 addMessage('Logging in...');
                 console.log(`Attempting to login with phone: ${phoneNumber} to URL: ${MOCK_SERVER_URL}`);
                 
-                // Wrap the fetch in a timeout to handle very slow connections
-                const fetchPromise = fetch(`${MOCK_SERVER_URL}/admin/user/${phoneNumber}`, {
+                // First try with all options including credentials and CORS
+                let response;
+                let fetchOptions = {
                     method: 'GET',
+                    credentials: 'include',
                     headers: {
                         'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Cache-Control': 'no-cache'
                     },
-                    credentials: 'include'
-                });
+                    mode: 'cors'
+                };
                 
-                // Race the fetch against a timeout
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Connection timed out')), 15000)
-                );
+                console.log('Initial fetch options:', fetchOptions);
                 
-                let response;
                 try {
-                    response = await Promise.race([fetchPromise, timeoutPromise]);
-                } catch (networkError) {
-                    if (networkError.message.includes('timed out')) {
-                        throw new Error('Connection timed out. Please try again.');
-                    } else {
-                        throw new Error(`Network error: ${networkError.message}`);
+                    // Create a timeout promise
+                    const timeoutPromise = new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Connection timed out')), 15000)
+                    );
+                    
+                    // Attempt the fetch with timeout
+                    console.log(`Attempting fetch with full options to ${MOCK_SERVER_URL}/admin/user/${phoneNumber}`);
+                    response = await Promise.race([
+                        fetch(`${MOCK_SERVER_URL}/admin/user/${phoneNumber}`, fetchOptions),
+                        timeoutPromise
+                    ]);
+                    console.log('Response received with status:', response.status);
+                } catch (firstError) {
+                    console.error('First fetch attempt failed:', firstError);
+                    
+                    // Try a simpler approach as fallback
+                    try {
+                        console.log('Retrying with simpler options...');
+                        const simpleOptions = {
+                            method: 'GET',
+                            cache: 'no-cache'
+                        };
+                        console.log('Simple fetch options:', simpleOptions);
+                        response = await fetch(`${MOCK_SERVER_URL}/admin/user/${phoneNumber}`, simpleOptions);
+                        console.log('Fallback fetch succeeded with status:', response.status);
+                    } catch (fallbackError) {
+                        console.error('Both fetch attempts failed');
+                        throw new Error(`Network error: ${fallbackError.message}`);
                     }
                 }
                 
-                console.log(`Login response status: ${response.status}`);
+                // Reset button state
+                if (loginButton) {
+                    loginButton.disabled = false;
+                    loginButton.textContent = originalButtonText;
+                }
+                
+                console.log(`Login response status: ${response.status}, statusText: ${response.statusText}`);
+                console.log('Response headers:', Array.from(response.headers.entries()));
                 
                 if (response.status === 404) {
                     // User not found, show registration message
@@ -464,14 +529,44 @@
                 let data;
                 try {
                     const responseText = await response.text();
-                    console.log('Response text:', responseText.substring(0, 100) + '...'); // Log first 100 chars
-                    data = JSON.parse(responseText);
-                } catch (parseError) {
-                    console.error('JSON parse error:', parseError);
-                    throw new Error(`Failed to parse server response: ${parseError.message}`);
+                    console.log('Response text length:', responseText.length);
+                    
+                    // Check if response is empty
+                    if (!responseText || responseText.trim() === '') {
+                        console.error('Empty response received from server');
+                        throw new Error('Empty response from server');
+                    }
+                    
+                    console.log('Response text:', responseText.length > 100 ? 
+                        responseText.substring(0, 100) + '...' : responseText);
+                        
+                    try {
+                        data = JSON.parse(responseText);
+                        console.log('Parsed data:', data);
+                    } catch (parseError) {
+                        console.error('JSON parse error:', parseError);
+                        
+                        // Try to extract JSON from potential HTML wrapper
+                        const jsonMatch = responseText.match(/(\{.*\})/s);
+                        if (jsonMatch) {
+                            console.log('Attempting to extract JSON from response');
+                            try {
+                                data = JSON.parse(jsonMatch[1]);
+                                console.log('Successfully extracted JSON from response:', data);
+                            } catch (extractError) {
+                                console.error('Failed to extract JSON:', extractError);
+                                throw new Error(`Failed to parse server response: ${parseError.message}`);
+                            }
+                        } else {
+                            throw new Error(`Failed to parse server response: ${parseError.message}`);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Response handling error:', error);
+                    throw error;
                 }
                 
-                if (data.status === 'success') {
+                if (data && data.status === 'success') {
                     currentPhoneNumber = phoneNumber;
                     document.getElementById('loginSection').innerHTML = 
                         `<div class="logged-in">Logged in as ${phoneNumber}</div>`;
@@ -480,7 +575,7 @@
                     addMessage(`Welcome back ${phoneNumber}! You can now use the available commands.`);
                     addMessage(`Current tax year is set to: ${currentTaxYear}. Use YEAR command to change it.`);
                 } else {
-                    throw new Error(data.message || 'Login failed');
+                    throw new Error((data && data.message) || 'Login failed');
                 }
             } catch (error) {
                 console.error('Login error:', error);
@@ -502,82 +597,106 @@
         }
 
         async function sendCommand() {
-    const commandInput = document.getElementById('commandInput');
-    const command = commandInput.value.trim();
-    if (!command) return;
+            const commandInput = document.getElementById('commandInput');
+            const command = commandInput.value.trim();
+            if (!command) return;
 
-    // Add command to the chat
-    addMessage(command, true);
-    commandInput.value = '';
+            // Add command to the chat
+            addMessage(command, true);
+            commandInput.value = '';
 
-    // Special case for HELP command - always available even if not logged in
-    if (command.toUpperCase() === 'HELP') {
-        const lang = localStorage.getItem('taxAppLanguage') || 'en';
-        const helpText = {
-            'en': 'Available commands:\n- REG TIN123456: Register with TIN\n- INC 5000: Add income\n- EXP 2000: Add expenditure\n- YEAR 2023: Set tax year\n- TAX: View tax calculation\n- RETURN: Check tax return status\n- PAY 1000: Make tax payment',
-            'ig': 'Iwu dị:\n- REG TIN123456: Debanye aha na TIN\n- INC 5000: Tinye ego ị na-enweta\n- EXP 2000: Tinye ego ị na-emefu\n- YEAR 2023: Họrọ afọ ụtụ isi\n- TAX: Lelee ọnụ ọgụgụ ụtụ isi\n- RETURN: Lelee ọnọdụ nlele ụtụ isi\n- PAY 1000: Kwụọ ụtụ isi',
-            'yo': 'Awọn aṣẹ to wa:\n- REG TIN123456: Forukọsilẹ pẹlu TIN\n- INC 5000: Fi owo sii\n- EXP 2000: Fi owo gbigba sii\n- YEAR 2023: Yan odun owo ori\n- TAX: Wo iṣiro owo ori\n- RETURN: Ṣayẹwo ipo ipadabọ owo ori\n- PAY 1000: San owo ori',
-            'ha': 'Umarnin da ke akwai:\n- REG TIN123456: Yi rajista da TIN\n- INC 5000: Ƙara kuɗi shigowa\n- EXP 2000: Ƙara kuɗi fitarwa\n- YEAR 2023: Zaɓi shekara na haraji\n- TAX: Duba lissafin haraji\n- RETURN: Duba matsayin dawowar haraji\n- PAY 1000: Biyan haraji'
-        }[lang];
-        
-        addMessage(helpText);
-        return;
-    }
+            // Special case for HELP command - always available even if not logged in
+            if (command.toUpperCase() === 'HELP') {
+                const lang = localStorage.getItem('taxAppLanguage') || 'en';
+                const helpText = {
+                    'en': 'Available commands:\n- REG TIN123456: Register with TIN\n- INC 5000: Add income\n- EXP 2000: Add expenditure\n- YEAR 2023: Set tax year\n- TAX: View tax calculation\n- RETURN: Check tax return status\n- PAY 1000: Make tax payment',
+                    'ig': 'Iwu dị:\n- REG TIN123456: Debanye aha na TIN\n- INC 5000: Tinye ego ị na-enweta\n- EXP 2000: Tinye ego ị na-emefu\n- YEAR 2023: Họrọ afọ ụtụ isi\n- TAX: Lelee ọnụ ọgụgụ ụtụ isi\n- RETURN: Lelee ọnọdụ nlele ụtụ isi\n- PAY 1000: Kwụọ ụtụ isi',
+                    'yo': 'Awọn aṣẹ to wa:\n- REG TIN123456: Forukọsilẹ pẹlu TIN\n- INC 5000: Fi owo sii\n- EXP 2000: Fi owo gbigba sii\n- YEAR 2023: Yan odun owo ori\n- TAX: Wo iṣiro owo ori\n- RETURN: Ṣayẹwo ipo ipadabọ owo ori\n- PAY 1000: San owo ori',
+                    'ha': 'Umarnin da ke akwai:\n- REG TIN123456: Yi rajista da TIN\n- INC 5000: Ƙara kuɗi shigowa\n- EXP 2000: Ƙara kuɗi fitarwa\n- YEAR 2023: Zaɓi shekara na haraji\n- TAX: Duba lissafin haraji\n- RETURN: Duba matsayin dawowar haraji\n- PAY 1000: Biyan haraji'
+                }[lang];
+                
+                addMessage(helpText);
+                return;
+            }
 
-    if (!currentPhoneNumber) {
-        const lang = localStorage.getItem('taxAppLanguage') || 'en';
-        const loginPrompt = {
-            'en': 'Please login first to use commands.',
-            'ig': 'Biko banye iji jiri iwu.',
-            'yo': 'Jọwọ wọle lati lo awọn aṣẹ.',
-            'ha': 'Da fatan za a shiga don amfani da umarni.'
-        }[lang];
-        
-        addMessage(loginPrompt);
-        return;
-    }
+            if (!currentPhoneNumber) {
+                const lang = localStorage.getItem('taxAppLanguage') || 'en';
+                const loginPrompt = {
+                    'en': 'Please login first to use commands.',
+                    'ig': 'Biko banye iji jiri iwu.',
+                    'yo': 'Jọwọ wọle lati lo awọn aṣẹ.',
+                    'ha': 'Da fatan za a shiga don amfani da umarni.'
+                }[lang];
+                
+                addMessage(loginPrompt);
+                return;
+            }
 
-    try {
-        const [cmd, ...args] = command.split(' ');
-        let response;
+            // Add loading indicator
+            const loadingMsgId = Date.now().toString();
+            addMessage('Processing command...', false, loadingMsgId);
 
-        switch(cmd.toUpperCase()) {
-            case 'REG':
-                response = await sendMessage(currentPhoneNumber, command);
-                break;
-            case 'INC':
-            case 'EXP':
-                // Append the year to the command if not already specified
-                if (args.length === 1) {
-                    response = await sendMessage(currentPhoneNumber, `${cmd} ${args[0]} ${currentTaxYear}`);
+            try {
+                const [cmd, ...args] = command.split(' ');
+                let response;
+
+                switch(cmd.toUpperCase()) {
+                    case 'REG':
+                        response = await sendMessage(currentPhoneNumber, command);
+                        break;
+                    case 'INC':
+                    case 'EXP':
+                        // Append the year to the command if not already specified
+                        if (args.length === 1) {
+                            response = await sendMessage(currentPhoneNumber, `${cmd} ${args[0]} ${currentTaxYear}`);
+                        } else {
+                            response = await sendMessage(currentPhoneNumber, command);
+                        }
+                        break;
+                    case 'YEAR':
+                        response = await handleYearCommand(args[0]);
+                        break;
+                    case 'TAX':
+                        response = await handleTaxCommand(currentPhoneNumber, args[0] || currentTaxYear);
+                        break;
+                    case 'RETURN':
+                        response = await handleReturnCommand(currentPhoneNumber, args[0] || currentTaxYear);
+                        break;
+                    case 'PAY':
+                        if (!args[0]) {
+                            throw new Error('Payment amount required');
+                        }
+                        response = await handlePayCommand(currentPhoneNumber, args[0], args[1] || currentTaxYear);
+                        break;
+                    default:
+                        throw new Error('Invalid command');
+                }
+
+                // Remove loading message
+                removeMessage(loadingMsgId);
+                
+                // Show response
+                addMessage(formatResponse(response));
+            } catch (error) {
+                console.error('Command error:', error);
+                
+                // Remove loading message
+                removeMessage(loadingMsgId);
+                
+                // Show error message
+                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    addMessage(`Error: Network error - ${error.message}`);
+                } else if (error.message.includes('timed out')) {
+                    addMessage('Error: Connection timed out. Please try again.');
+                } else if (error.message.includes('parse') || error.message.includes('JSON')) {
+                    addMessage('Error: Invalid response from server. Please try again.');
+                } else if (error.message.includes('Empty response')) {
+                    addMessage('Error: Server returned empty response. Please try again.');
                 } else {
-                    response = await sendMessage(currentPhoneNumber, command);
+                    addMessage(`Error: ${error.message}`);
                 }
-                break;
-            case 'YEAR':
-                response = await handleYearCommand(args[0]);
-                break;
-            case 'TAX':
-                response = await handleTaxCommand(currentPhoneNumber, args[0] || currentTaxYear);
-                break;
-            case 'RETURN':
-                response = await handleReturnCommand(currentPhoneNumber, args[0] || currentTaxYear);
-                break;
-            case 'PAY':
-                if (!args[0]) {
-                    throw new Error('Payment amount required');
-                }
-                response = await handlePayCommand(currentPhoneNumber, args[0], args[1] || currentTaxYear);
-                break;
-            default:
-                throw new Error('Invalid command');
+            }
         }
-
-        addMessage(formatResponse(response));
-    } catch (error) {
-        addMessage(`Error: ${error.message}`);
-    }
-}
 
         async function sendMessage(phoneNumber, message) {
             try {
@@ -656,18 +775,54 @@
 
         async function handleTaxCommand(phoneNumber, year) {
             try {
-                const response = await fetch(`${MOCK_SERVER_URL}/tax/${phoneNumber}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'include',
-                    body: JSON.stringify({
-                        year: year || currentTaxYear
-                    })
-                });
+                console.log(`Fetching tax data for ${phoneNumber}, year: ${year}`);
+                
+                // Try multiple approaches to connect to server
+                let response;
+                
+                // First try with full CORS and credentials
+                try {
+                    const fetchOptions = {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Cache-Control': 'no-cache'
+                        },
+                        credentials: 'include',
+                        mode: 'cors',
+                        body: JSON.stringify({
+                            year: year || currentTaxYear
+                        })
+                    };
+                    
+                    console.log('Full fetch options:', fetchOptions);
+                    response = await fetch(`${MOCK_SERVER_URL}/tax/${phoneNumber}`, fetchOptions);
+                    console.log('Response received with status:', response.status);
+                } catch (firstError) {
+                    console.error('First fetch attempt failed:', firstError);
+                    
+                    // Try simpler approach as fallback
+                    try {
+                        console.log('Retrying with simpler fetch options');
+                        const simpleOptions = {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                year: year || currentTaxYear
+                            })
+                        };
+                        
+                        response = await fetch(`${MOCK_SERVER_URL}/tax/${phoneNumber}`, simpleOptions);
+                        console.log('Fallback fetch succeeded with status:', response.status);
+                    } catch (fallbackError) {
+                        console.error('Both fetch attempts failed');
+                        throw new Error(`Network error: ${fallbackError.message}`);
+                    }
+                }
 
                 if (!response.ok) {
                     console.error(`Error response: ${response.status} ${response.statusText}`);
@@ -684,15 +839,45 @@
                 let responseData;
                 try {
                     const responseText = await response.text();
-                    console.log('Response text:', responseText.substring(0, 100) + '...'); // Log first 100 chars
-                    responseData = JSON.parse(responseText);
-                } catch (parseError) {
-                    console.error('JSON parse error:', parseError);
-                    throw new Error('Invalid response from server. Please try again.');
+                    console.log('Response text length:', responseText.length);
+                    
+                    // Check if response is empty
+                    if (!responseText || responseText.trim() === '') {
+                        console.error('Empty response received from server');
+                        throw new Error('Empty response from server');
+                    }
+                    
+                    console.log('Response text:', responseText.length > 100 ? 
+                        responseText.substring(0, 100) + '...' : responseText);
+                        
+                    try {
+                        responseData = JSON.parse(responseText);
+                        console.log('Parsed data:', responseData);
+                    } catch (parseError) {
+                        console.error('JSON parse error:', parseError);
+                        
+                        // Try to extract JSON from potential HTML wrapper
+                        const jsonMatch = responseText.match(/(\{.*\})/s);
+                        if (jsonMatch) {
+                            console.log('Attempting to extract JSON from response');
+                            try {
+                                responseData = JSON.parse(jsonMatch[1]);
+                                console.log('Successfully extracted JSON from response:', responseData);
+                            } catch (extractError) {
+                                console.error('Failed to extract JSON:', extractError);
+                                throw new Error(`Failed to parse server response: ${parseError.message}`);
+                            }
+                        } else {
+                            throw new Error(`Failed to parse server response: ${parseError.message}`);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Response handling error:', error);
+                    throw error;
                 }
                 
                 // Ensure we have tax_owed calculated correctly
-                if (responseData.status === 'success' && responseData.data) {
+                if (responseData && responseData.status === 'success' && responseData.data) {
                     const data = responseData.data;
                     const income = parseFloat(data.income || 0);
                     const expenses = parseFloat(data.expenses || data.expenditure || 0);
@@ -702,6 +887,8 @@
                     if (!data.tax_owed) {
                         data.tax_owed = calculate_nigeria_tax(taxable_income);
                     }
+                } else {
+                    throw new Error('Invalid or incomplete data received from server');
                 }
 
                 return responseData;

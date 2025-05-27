@@ -480,10 +480,35 @@
     <script src="translations.js"></script>
     <script src="language-switcher.js"></script>
     <script>
-        // Use a relative URL instead of hardcoded localhost which doesn't work on mobile
-        const MOCK_SERVER_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-            ? 'http://localhost:5000' 
-            : window.location.origin;
+        // Define more robust server URL detection with multiple fallbacks
+        function getServerUrl() {
+            // Log all available info for debugging
+            console.log('Location info:', {
+                hostname: window.location.hostname,
+                origin: window.location.origin,
+                href: window.location.href,
+                protocol: window.location.protocol
+            });
+            
+            // Try different approaches to get a working server URL
+            if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                console.log('Using localhost URL');
+                return 'http://localhost:5000';
+            } else if (window.location.hostname.match(/^192\.168\./)) {
+                console.log('Using local IP URL');
+                return `http://${window.location.hostname}:5000`;
+            } else if (window.location.hostname.match(/^172\.|^10\./)) {
+                console.log('Using private network IP URL');
+                return `http://${window.location.hostname}:5000`;
+            } else {
+                // Use current origin as fallback
+                console.log('Using origin as fallback URL');
+                return window.location.origin;
+            }
+        }
+
+        // Use the function to determine the server URL
+        const MOCK_SERVER_URL = getServerUrl();
         let currentPhoneNumber = null;
         
         // Set default language to English
@@ -620,25 +645,48 @@
                     }, 10000); // 10 seconds timeout
                 }
                 
-                // Add credentials to ensure cookies are sent
-                const fetchOptions = {
+                // Try multiple connection options if needed
+                let response;
+                let fetchOptions = {
                     method: 'GET',
                     credentials: 'include',
                     headers: {
                         'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Cache-Control': 'no-cache'
+                    },
+                    mode: 'cors'
                 };
                 
-                // Wrap the fetch in a timeout to handle very slow connections
-                const fetchPromise = fetch(`${MOCK_SERVER_URL}/admin/user/${phoneNumber}`, fetchOptions);
+                console.log('Fetch options:', fetchOptions);
                 
-                // Race the fetch against a timeout
-                const timeoutPromise = new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('Connection timed out')), 15000)
-                );
-                
-                const response = await Promise.race([fetchPromise, timeoutPromise]);
+                // First try with all the options
+                try {
+                    console.log(`Attempting fetch with full options to ${MOCK_SERVER_URL}/admin/user/${phoneNumber}`);
+                    const fetchPromise = fetch(`${MOCK_SERVER_URL}/admin/user/${phoneNumber}`, fetchOptions);
+                    const timeoutPromise = new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Connection timed out')), 15000)
+                    );
+                    response = await Promise.race([fetchPromise, timeoutPromise]);
+                    console.log('Response received with status:', response.status);
+                } catch (firstError) {
+                    console.error('First fetch attempt failed:', firstError);
+                    
+                    // Try a simpler approach without CORS mode as fallback
+                    try {
+                        console.log('Retrying with simpler options...');
+                        const simpleOptions = {
+                            method: 'GET',
+                            cache: 'no-cache'
+                        };
+                        console.log('Simple fetch options:', simpleOptions);
+                        response = await fetch(`${MOCK_SERVER_URL}/admin/user/${phoneNumber}`, simpleOptions);
+                        console.log('Fallback fetch succeeded with status:', response.status);
+                    } catch (fallbackError) {
+                        console.error('Both fetch attempts failed');
+                        throw new Error(`Network error: ${fallbackError.message}`);
+                    }
+                }
                 
                 // Reset button state
                 if (loginButton) {
@@ -647,7 +695,8 @@
                 }
 
                 // Log response status for debugging
-                console.log(`Login response status: ${response.status}`);
+                console.log(`Login response status: ${response.status}, statusText: ${response.statusText}`);
+                console.log('Response headers:', Array.from(response.headers.entries()));
                 
                 // Handle user not found - show registration option
                 if (response.status === 404) {
@@ -670,14 +719,43 @@
                 let data;
                 try {
                     const responseText = await response.text();
-                    console.log('Response text:', responseText.substring(0, 100) + '...'); // Log first 100 chars
-                    data = JSON.parse(responseText);
-                } catch (parseError) {
-                    console.error('JSON parse error:', parseError);
-                    throw new Error(`Failed to parse server response: ${parseError.message}`);
+                    
+                    // Check if response is empty or not valid JSON
+                    if (!responseText || responseText.trim() === '') {
+                        console.error('Empty response received from server');
+                        throw new Error('Empty response from server');
+                    }
+                    
+                    console.log('Response text:', responseText.length > 100 ? 
+                        responseText.substring(0, 100) + '...' : responseText); // Log first 100 chars
+                        
+                    try {
+                        data = JSON.parse(responseText);
+                        console.log('Parsed data:', data);
+                    } catch (parseError) {
+                        console.error('JSON parse error:', parseError);
+                        
+                        // Try to extract JSON from potential HTML wrapper
+                        const jsonMatch = responseText.match(/(\{.*\})/s);
+                        if (jsonMatch) {
+                            console.log('Attempting to extract JSON from response');
+                            try {
+                                data = JSON.parse(jsonMatch[1]);
+                                console.log('Successfully extracted JSON from response:', data);
+                            } catch (extractError) {
+                                console.error('Failed to extract JSON:', extractError);
+                                throw new Error(`Failed to parse server response: ${parseError.message}`);
+                            }
+                        } else {
+                            throw new Error(`Failed to parse server response: ${parseError.message}`);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Response handling error:', error);
+                    throw error;
                 }
 
-                if (data.status === 'success') {
+                if (data && data.status === 'success') {
                     currentPhoneNumber = phoneNumber;
                     const loginSection = document.getElementById('loginSection');
                     const accountSection = document.getElementById('accountSection');
@@ -693,7 +771,7 @@
                     
                     loadAccountData();
                 } else {
-                    throw new Error(data.message || 'Login failed');
+                    throw new Error((data && data.message) || 'Login failed');
                 }
             } catch (error) {
                 console.error('Login error:', error);
@@ -710,8 +788,10 @@
                     showLocalizedAlert('networkError', ': ' + error.message);
                 } else if (error.message.includes('timed out')) {
                     showLocalizedAlert('connectionTimeout');
-                } else if (error.message.includes('parse')) {
+                } else if (error.message.includes('parse') || error.message.includes('JSON')) {
                     showLocalizedAlert('serverError', ': Invalid response from server');
+                } else if (error.message.includes('Empty response')) {
+                    showLocalizedAlert('serverError', ': Server returned empty response');
                 } else {
                     showLocalizedAlert('failedLogin', ': ' + error.message);
                 }
@@ -727,19 +807,70 @@
                     return;
                 }
                 const selectedYear = parseInt(yearSelector.value);
+                console.log('Loading data for year:', selectedYear);
                 
                 // Fetch all tax history from CSV file via API - do this first so we have all data
                 let allUserRecords = [];
                 try {
-                    const csvResponse = await fetch(`${MOCK_SERVER_URL}/admin/users`);
+                    console.log(`Fetching users data from ${MOCK_SERVER_URL}/admin/users`);
+                    const csvResponse = await fetch(`${MOCK_SERVER_URL}/admin/users`, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Cache-Control': 'no-cache'
+                        },
+                        credentials: 'include',
+                        mode: 'cors'
+                    });
+                    
+                    console.log('CSV response status:', csvResponse.status);
+                    
                     if (!csvResponse.ok) {
-                        throw new Error('Failed to fetch user data');
+                        throw new Error(`Failed to fetch user data: ${csvResponse.status}`);
                     }
                     
-                    const allUsersData = await csvResponse.json();
+                    let allUsersData;
+                    try {
+                        const responseText = await csvResponse.text();
+                        
+                        // Check if response is empty
+                        if (!responseText || responseText.trim() === '') {
+                            console.error('Empty response received from server');
+                            throw new Error('Empty response from server');
+                        }
+                        
+                        console.log('Response text length:', responseText.length);
+                        console.log('First 100 chars:', responseText.substring(0, 100));
+                        
+                        try {
+                            allUsersData = JSON.parse(responseText);
+                        } catch (parseError) {
+                            console.error('JSON parse error:', parseError);
+                            
+                            // Try to extract JSON from potential HTML wrapper
+                            const jsonMatch = responseText.match(/(\{.*\})/s);
+                            if (jsonMatch) {
+                                console.log('Attempting to extract JSON from response');
+                                try {
+                                    allUsersData = JSON.parse(jsonMatch[1]);
+                                } catch (extractError) {
+                                    console.error('Failed to extract JSON:', extractError);
+                                    throw new Error(`Failed to parse server response: ${parseError.message}`);
+                                }
+                            } else {
+                                throw new Error(`Failed to parse server response: ${parseError.message}`);
+                            }
+                        }
+                        
+                    } catch (parseError) {
+                        console.error('Error parsing users data:', parseError);
+                        throw parseError;
+                    }
+                    
                     console.log('All users data:', allUsersData);
                     
-                    if (allUsersData.status === 'success' && allUsersData.data) {
+                    if (allUsersData && allUsersData.status === 'success' && allUsersData.data) {
                         // Filter records for the current phone number
                         allUserRecords = allUsersData.data.filter(record => 
                             record.phone_number === currentPhoneNumber
@@ -747,9 +878,13 @@
                         
                         // Sort records by year (descending)
                         allUserRecords.sort((a, b) => parseInt(b.tax_year) - parseInt(a.tax_year));
+                        console.log('Filtered records for current user:', allUserRecords);
+                    } else {
+                        console.warn('No valid user records found in the response');
                     }
-                } catch (error) {
-                    console.error('Error fetching tax history:', error);
+                } catch (csvError) {
+                    console.error('Error fetching tax history:', csvError);
+                    // Continue with other data loading, don't throw here
                 }
                 
                 // Process and display all history records
@@ -815,121 +950,185 @@
                         }
                     }
                 } else {
-                    console.error('No tax records found for user:', currentPhoneNumber);
+                    console.warn('No tax records found for user:', currentPhoneNumber);
                 }
                 
                 // Update the Tax Summary section with selected year data
                 if (selectedYearRecord) {
-                    // Get all the elements we need to update, with null checks
-                    const currentYearEl = document.getElementById('currentYear');
-                    const currentIncomeEl = document.getElementById('currentIncome');
-                    const currentExpensesEl = document.getElementById('currentExpenses');
-                    const currentTaxOwedEl = document.getElementById('currentTaxOwed');
-                    const currentTaxPaidEl = document.getElementById('currentTaxPaid');
-                    const currentRemainingTaxEl = document.getElementById('currentRemainingTax');
-                    const currentStatusEl = document.getElementById('currentStatus');
-                    const paymentSectionEl = document.getElementById('paymentSection');
-                    
-                    // Only update elements that exist
-                    if (currentYearEl) currentYearEl.textContent = selectedYearRecord.year;
-                    if (currentIncomeEl) currentIncomeEl.textContent = `₦${selectedYearRecord.income.toLocaleString()}`;
-                    if (currentExpensesEl) currentExpensesEl.textContent = `₦${selectedYearRecord.expenses.toLocaleString()}`;
-                    if (currentTaxOwedEl) currentTaxOwedEl.textContent = `₦${selectedYearRecord.taxOwed.toLocaleString()}`;
-                    if (currentTaxPaidEl) currentTaxPaidEl.textContent = `₦${selectedYearRecord.taxPaid.toLocaleString()}`;
-                    if (currentRemainingTaxEl) currentRemainingTaxEl.textContent = `₦${selectedYearRecord.remainingTax.toLocaleString()}`;
-                    
-                    // Use the same translated status text and class as in the history table
-                    if (currentStatusEl) {
-                        currentStatusEl.textContent = selectedYearRecord.statusText;
-                        currentStatusEl.className = `tax-status ${selectedYearRecord.status}`;
-                    }
-
-                    // Show/hide payment section based on remaining tax
-                    if (paymentSectionEl) {
-                        paymentSectionEl.style.display = selectedYearRecord.remainingTax > 0 ? 'block' : 'none';
-                    }
+                    console.log('Using selected year record from history:', selectedYearRecord);
+                    updateTaxSummary(selectedYearRecord);
                 } else {
                     // No data for selected year, make a fallback API call
-                    // Get current year data from tax endpoint
-                    const response = await fetch(`${MOCK_SERVER_URL}/tax/${currentPhoneNumber}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            year: selectedYear
-                        })
-                    });
+                    try {
+                        console.log(`Making fallback API call to ${MOCK_SERVER_URL}/tax/${currentPhoneNumber} for year ${selectedYear}`);
+                        const response = await fetch(`${MOCK_SERVER_URL}/tax/${currentPhoneNumber}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Cache-Control': 'no-cache'
+                            },
+                            credentials: 'include',
+                            mode: 'cors',
+                            body: JSON.stringify({
+                                year: selectedYear
+                            })
+                        });
 
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        console.error('Server error:', errorData);
-                        throw new Error(errorData.error || 'Failed to load account data');
-                    }
-
-                    const data = await response.json();
-                    console.log('Server response:', data); // Debug log
-
-                    if (data.status === 'success' && data.data) {
-                        const taxData = data.data;
-                        const income = parseFloat(taxData.income || 0);
-                        const expenses = parseFloat(taxData.expenses || taxData.expenditure || 0);
+                        console.log('Fallback API response status:', response.status);
                         
-                        // Calculate taxable income
-                        const taxableIncome = Math.max(0, income - expenses);
-                        
-                        // Calculate tax owed using the Nigerian tax rates
-                        const taxOwed = calculate_nigeria_tax(taxableIncome);
-                        
-                        const taxPaid = parseFloat(taxData.tax_paid || 0);
-                        const remainingTax = Math.max(0, taxOwed - taxPaid);
-                        
-                        // Update status based on tax paid vs tax owed
-                        let status = 'pending';
-                        if (taxPaid >= taxOwed) {
-                            status = 'paid';
-                        } else if (taxPaid > 0) {
-                            status = 'active';
+                        if (!response.ok) {
+                            throw new Error(`Server error: ${response.status}`);
                         }
 
-                        // Get all the elements we need to update, with null checks
-                        const currentYearEl = document.getElementById('currentYear');
-                        const currentIncomeEl = document.getElementById('currentIncome');
-                        const currentExpensesEl = document.getElementById('currentExpenses');
-                        const currentTaxOwedEl = document.getElementById('currentTaxOwed');
-                        const currentTaxPaidEl = document.getElementById('currentTaxPaid');
-                        const currentRemainingTaxEl = document.getElementById('currentRemainingTax');
-                        const currentStatusEl = document.getElementById('currentStatus');
-                        const paymentSectionEl = document.getElementById('paymentSection');
-                        
-                        // Only update elements that exist
-                        if (currentYearEl) currentYearEl.textContent = selectedYear;
-                        if (currentIncomeEl) currentIncomeEl.textContent = `₦${income.toLocaleString()}`;
-                        if (currentExpensesEl) currentExpensesEl.textContent = `₦${expenses.toLocaleString()}`;
-                        if (currentTaxOwedEl) currentTaxOwedEl.textContent = `₦${taxOwed.toLocaleString()}`;
-                        if (currentTaxPaidEl) currentTaxPaidEl.textContent = `₦${taxPaid.toLocaleString()}`;
-                        if (currentRemainingTaxEl) currentRemainingTaxEl.textContent = `₦${remainingTax.toLocaleString()}`;
-                        
-                        // Translate status based on current language
-                        const statusText = translations[currentLanguage][`status${status.charAt(0).toUpperCase() + status.slice(1)}`] || status;
-                        
-                        if (currentStatusEl) {
-                            currentStatusEl.textContent = statusText;
-                            currentStatusEl.className = `tax-status ${status}`;
+                        let data;
+                        try {
+                            const responseText = await response.text();
+                            
+                            // Check if response is empty
+                            if (!responseText || responseText.trim() === '') {
+                                console.error('Empty response received from server');
+                                throw new Error('Empty response from server');
+                            }
+                            
+                            console.log('Response text length:', responseText.length);
+                            console.log('First 100 chars:', responseText.substring(0, 100));
+                            
+                            try {
+                                data = JSON.parse(responseText);
+                            } catch (parseError) {
+                                console.error('JSON parse error:', parseError);
+                                
+                                // Try to extract JSON from potential HTML wrapper
+                                const jsonMatch = responseText.match(/(\{.*\})/s);
+                                if (jsonMatch) {
+                                    console.log('Attempting to extract JSON from response');
+                                    try {
+                                        data = JSON.parse(jsonMatch[1]);
+                                    } catch (extractError) {
+                                        console.error('Failed to extract JSON:', extractError);
+                                        throw new Error(`Failed to parse server response: ${parseError.message}`);
+                                    }
+                                } else {
+                                    throw new Error(`Failed to parse server response: ${parseError.message}`);
+                                }
+                            }
+                        } catch (parseError) {
+                            console.error('Error parsing tax data:', parseError);
+                            throw parseError;
                         }
 
-                        // Show/hide payment section based on remaining tax
-                        if (paymentSectionEl) {
-                            paymentSectionEl.style.display = remainingTax > 0 ? 'block' : 'none';
+                        console.log('Server response:', data); // Debug log
+
+                        if (data && data.status === 'success' && data.data) {
+                            const taxData = data.data;
+                            const income = parseFloat(taxData.income || 0);
+                            const expenses = parseFloat(taxData.expenses || taxData.expenditure || 0);
+                            
+                            // Calculate taxable income
+                            const taxableIncome = Math.max(0, income - expenses);
+                            
+                            // Calculate tax owed using the Nigerian tax rates
+                            const taxOwed = calculate_nigeria_tax(taxableIncome);
+                            
+                            const taxPaid = parseFloat(taxData.tax_paid || 0);
+                            const remainingTax = Math.max(0, taxOwed - taxPaid);
+                            
+                            // Update status based on tax paid vs tax owed
+                            let status = 'pending';
+                            if (taxPaid >= taxOwed) {
+                                status = 'paid';
+                            } else if (taxPaid > 0) {
+                                status = 'active';
+                            }
+
+                            // Translate status based on current language
+                            const statusText = translations[currentLanguage][`status${status.charAt(0).toUpperCase() + status.slice(1)}`] || status;
+                            
+                            // Create a record object
+                            const record = {
+                                year: selectedYear,
+                                income: income,
+                                expenses: expenses,
+                                taxPaid: taxPaid,
+                                taxableIncome: taxableIncome,
+                                taxOwed: taxOwed,
+                                remainingTax: remainingTax,
+                                status: status,
+                                statusText: statusText
+                            };
+                            
+                            console.log('Created tax record from API response:', record);
+                            updateTaxSummary(record);
+                        } else {
+                            console.error('Invalid response format:', data);
+                            throw new Error('Invalid response from server');
                         }
-                    } else {
-                        console.error('Invalid response format:', data);
-                        throw new Error('Invalid response from server');
+                    } catch (taxError) {
+                        console.error('Error fetching tax data:', taxError);
+                        
+                        // Create an empty record for the selected year to avoid null errors
+                        const emptyRecord = {
+                            year: selectedYear,
+                            income: 0,
+                            expenses: 0,
+                            taxPaid: 0,
+                            taxableIncome: 0,
+                            taxOwed: 0,
+                            remainingTax: 0,
+                            status: 'pending',
+                            statusText: translations[currentLanguage].statusPending || 'pending'
+                        };
+                        
+                        console.log('Using empty tax record as fallback:', emptyRecord);
+                        updateTaxSummary(emptyRecord);
+                        
+                        // Show error in tax summary section
+                        const currentYearSummary = document.getElementById('currentYearSummary');
+                        if (currentYearSummary) {
+                            const errorMessage = document.createElement('div');
+                            errorMessage.className = 'error-message';
+                            errorMessage.textContent = translations[currentLanguage].failedLoadData || 'Failed to load tax data';
+                            currentYearSummary.appendChild(errorMessage);
+                        }
                     }
                 }
             } catch (error) {
                 console.error('Error loading account data:', error);
                 showLocalizedAlert('failedLoadData', error.message);
+            }
+        }
+
+        // Helper function to update the tax summary section
+        function updateTaxSummary(record) {
+            // Get all the elements we need to update, with null checks
+            const currentYearEl = document.getElementById('currentYear');
+            const currentIncomeEl = document.getElementById('currentIncome');
+            const currentExpensesEl = document.getElementById('currentExpenses');
+            const currentTaxOwedEl = document.getElementById('currentTaxOwed');
+            const currentTaxPaidEl = document.getElementById('currentTaxPaid');
+            const currentRemainingTaxEl = document.getElementById('currentRemainingTax');
+            const currentStatusEl = document.getElementById('currentStatus');
+            const paymentSectionEl = document.getElementById('paymentSection');
+            
+            // Only update elements that exist
+            if (currentYearEl) currentYearEl.textContent = record.year;
+            if (currentIncomeEl) currentIncomeEl.textContent = `₦${record.income.toLocaleString()}`;
+            if (currentExpensesEl) currentExpensesEl.textContent = `₦${record.expenses.toLocaleString()}`;
+            if (currentTaxOwedEl) currentTaxOwedEl.textContent = `₦${record.taxOwed.toLocaleString()}`;
+            if (currentTaxPaidEl) currentTaxPaidEl.textContent = `₦${record.taxPaid.toLocaleString()}`;
+            if (currentRemainingTaxEl) currentRemainingTaxEl.textContent = `₦${record.remainingTax.toLocaleString()}`;
+            
+            // Use the same translated status text and class as in the history table
+            if (currentStatusEl) {
+                currentStatusEl.textContent = record.statusText;
+                currentStatusEl.className = `tax-status ${record.status}`;
+            }
+
+            // Show/hide payment section based on remaining tax
+            if (paymentSectionEl) {
+                paymentSectionEl.style.display = record.remainingTax > 0 ? 'block' : 'none';
             }
         }
 
@@ -946,31 +1145,123 @@
                 return;
             }
 
+            // Show loading UI
+            const payButton = document.querySelector('#paymentSection button');
+            const originalButtonText = payButton ? payButton.textContent : '';
+            
+            if (payButton) {
+                payButton.disabled = true;
+                payButton.textContent = '...';
+            }
+            
             try {
+                console.log(`Processing payment: ${amount} for user ${currentPhoneNumber}`);
+                
                 const yearSelector = document.getElementById('yearSelector');
                 if (!yearSelector) {
                     console.error('Year selector not found');
-                    return;
+                    throw new Error('Year selector not found');
                 }
                 
                 const selectedYear = parseInt(yearSelector.value);
-                const response = await fetch(`${MOCK_SERVER_URL}/pay-tax/${currentPhoneNumber}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        amount: amount,
-                        year: selectedYear
-                    })
-                });
+                console.log(`Selected year for payment: ${selectedYear}`);
+                
+                // Try multiple approaches for payment
+                let response;
+                
+                // First try with full CORS and credentials
+                try {
+                    const fetchOptions = {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Cache-Control': 'no-cache'
+                        },
+                        credentials: 'include',
+                        mode: 'cors',
+                        body: JSON.stringify({
+                            amount: amount,
+                            year: selectedYear
+                        })
+                    };
+                    
+                    console.log('Full payment fetch options:', fetchOptions);
+                    response = await fetch(`${MOCK_SERVER_URL}/pay-tax/${currentPhoneNumber}`, fetchOptions);
+                    console.log('Payment response received with status:', response.status);
+                } catch (firstError) {
+                    console.error('First payment fetch attempt failed:', firstError);
+                    
+                    // Try simpler approach as fallback
+                    try {
+                        console.log('Retrying payment with simpler fetch options');
+                        const simpleOptions = {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                amount: amount,
+                                year: selectedYear
+                            })
+                        };
+                        
+                        response = await fetch(`${MOCK_SERVER_URL}/pay-tax/${currentPhoneNumber}`, simpleOptions);
+                        console.log('Fallback payment fetch succeeded with status:', response.status);
+                    } catch (fallbackError) {
+                        console.error('Both payment fetch attempts failed');
+                        throw new Error(`Network error: ${fallbackError.message}`);
+                    }
+                }
 
                 if (!response.ok) {
+                    console.error(`Error payment response: ${response.status} ${response.statusText}`);
                     throw new Error(translations[currentLanguage].paymentFailed);
                 }
 
-                const data = await response.json();
-                if (data.status === 'success') {
+                // Safely parse the response
+                let data;
+                try {
+                    const responseText = await response.text();
+                    console.log('Payment response text length:', responseText.length);
+                    
+                    // Check if response is empty
+                    if (!responseText || responseText.trim() === '') {
+                        console.error('Empty response received from payment server');
+                        throw new Error('Empty response from server');
+                    }
+                    
+                    console.log('Payment response text:', responseText.length > 100 ? 
+                        responseText.substring(0, 100) + '...' : responseText);
+                        
+                    try {
+                        data = JSON.parse(responseText);
+                        console.log('Parsed payment data:', data);
+                    } catch (parseError) {
+                        console.error('Payment JSON parse error:', parseError);
+                        
+                        // Try to extract JSON from potential HTML wrapper
+                        const jsonMatch = responseText.match(/(\{.*\})/s);
+                        if (jsonMatch) {
+                            console.log('Attempting to extract JSON from payment response');
+                            try {
+                                data = JSON.parse(jsonMatch[1]);
+                                console.log('Successfully extracted JSON from payment response:', data);
+                            } catch (extractError) {
+                                console.error('Failed to extract payment JSON:', extractError);
+                                throw new Error(`Failed to parse server response: ${parseError.message}`);
+                            }
+                        } else {
+                            throw new Error(`Failed to parse server response: ${parseError.message}`);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Payment response handling error:', error);
+                    throw error;
+                }
+                
+                if (data && data.status === 'success') {
                     // Refresh account data to show updated values
                     await loadAccountData();
                     
@@ -978,10 +1269,30 @@
                     if (paymentAmountInput) paymentAmountInput.value = '';
                     
                     showLocalizedAlert('paymentSuccess');
+                } else {
+                    throw new Error((data && data.message) || translations[currentLanguage].paymentFailed);
                 }
             } catch (error) {
                 console.error('Error processing payment:', error);
-                showLocalizedAlert('failedPayment');
+                
+                // Show appropriate error message based on error type
+                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    showLocalizedAlert('networkError', ': ' + error.message);
+                } else if (error.message.includes('timed out')) {
+                    showLocalizedAlert('connectionTimeout');
+                } else if (error.message.includes('parse') || error.message.includes('JSON')) {
+                    showLocalizedAlert('serverError', ': Invalid response from server');
+                } else if (error.message.includes('Empty response')) {
+                    showLocalizedAlert('serverError', ': Server returned empty response');
+                } else {
+                    showLocalizedAlert('failedPayment', ': ' + error.message);
+                }
+            } finally {
+                // Reset button state regardless of success/failure
+                if (payButton) {
+                    payButton.disabled = false;
+                    payButton.textContent = originalButtonText;
+                }
             }
         }
 
