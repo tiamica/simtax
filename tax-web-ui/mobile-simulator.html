@@ -303,6 +303,13 @@
             } else if (window.location.hostname.match(/^172\.|^10\./)) {
                 console.log('Using private network IP URL');
                 return `http://${window.location.hostname}:5000`;
+            } else if (window.location.hostname.includes('github.io') || 
+                      window.location.hostname.includes('netlify') || 
+                      window.location.hostname.includes('vercel.app') || 
+                      /^(www\.)?[a-z0-9-]+\.(com|net|org|io)$/i.test(window.location.hostname)) {
+                // For production internet facing deployments (master branch)
+                console.log('Using production mock server URL');
+                return 'http://34.173.20.218:5000';
             } else {
                 // Use current origin as fallback
                 console.log('Using origin as fallback URL');
