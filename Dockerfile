@@ -6,15 +6,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nginx \
     supervisor \
     curl \
+    gettext-base \
     && rm -rf /var/lib/apt/lists/*
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    # External port (Cloud Run injects $PORT, fallback to 8080)
     PORT=8080
 
-# Create a non‑root user for security
+# Create a non-root user for security
 RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
 
 # Set work directory
@@ -27,20 +27,19 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the entire application code
 COPY . .
 
-# Fix ownership for the non‑root user
+# Fix ownership for the non-root user
 RUN chown -R appuser:appgroup /app
 
 # --- Configure nginx ---
 # Remove default nginx site
-RUN rm /etc/nginx/sites-enabled/default
+RUN rm -f /etc/nginx/sites-enabled/default
 
-# Write custom nginx config that uses $PORT and proxies to the two backends
+# Write custom nginx config (using heredoc syntax)
 RUN cat > /etc/nginx/sites-available/simtax <<'EOF'
 server {
-    listen ${PORT} default_server;
+    listen 8080 default_server;
     server_name _;
 
-    # Increase max body size for file uploads (if needed)
     client_max_body_size 10M;
 
     # Proxy API endpoints to mockserver (port 5000)
@@ -64,24 +63,8 @@ server {
 }
 EOF
 
-# Enable the site and substitute the PORT variable at runtime
-RUN ln -s /etc/nginx/sites-available/simtax /etc/nginx/sites-enabled/
-
-# Replace the $PORT placeholder in nginx config with the environment variable
-# (We'll do this at runtime using envsubst, but we can also create a wrapper script)
-COPY <<'SCRIPT' /docker-entrypoint.sh
-#!/bin/bash
-set -e
-
-# Substitute $PORT in the nginx config with the actual environment variable
-envsubst '${PORT}' < /etc/nginx/sites-available/simtax > /etc/nginx/sites-available/simtax.tmp
-mv /etc/nginx/sites-available/simtax.tmp /etc/nginx/sites-available/simtax
-
-# Start supervisord (manages nginx and the two Python apps)
-exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
-SCRIPT
-
-RUN chmod +x /docker-entrypoint.sh
+# Enable the site
+RUN ln -sf /etc/nginx/sites-available/simtax /etc/nginx/sites-enabled/
 
 # --- Configure supervisor ---
 RUN cat > /etc/supervisor/conf.d/supervisord.conf <<'EOF'
@@ -123,12 +106,28 @@ stderr_logfile_maxbytes=0
 environment=PORT="5001"
 EOF
 
-# Ensure the non‑root user has write access to nginx logs (if needed)
-RUN touch /var/log/nginx/access.log /var/log/nginx/error.log && \
-    chown -R appuser:appgroup /var/log/nginx /var/lib/nginx /run/nginx.pid
+# Create entrypoint script to handle PORT substitution
+RUN cat > /docker-entrypoint.sh <<'EOF'
+#!/bin/bash
+set -e
 
-# Expose the external port (Cloud Run will use $PORT)
-EXPOSE ${PORT}
+# Replace the port in nginx config if PORT environment variable is different
+if [ ! -z "$PORT" ] && [ "$PORT" != "8080" ]; then
+    sed -i "s/listen 8080/listen $PORT/" /etc/nginx/sites-available/simtax
+fi
+
+# Start supervisord
+exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+EOF
+
+RUN chmod +x /docker-entrypoint.sh
+
+# Ensure proper permissions for nginx
+RUN touch /var/log/nginx/access.log /var/log/nginx/error.log && \
+    chown -R appuser:appgroup /var/log/nginx /var/lib/nginx /run/nginx.pid 2>/dev/null || true
+
+# Expose the port (Cloud Run will override with $PORT)
+EXPOSE 8080
 
 # Use the custom entrypoint
 ENTRYPOINT ["/docker-entrypoint.sh"]
