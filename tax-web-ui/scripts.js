@@ -28,7 +28,7 @@ function showLocalizedAlert(key, additionalText = '') {
 
 function fetchAccountData(phoneNumber) {
     // Fetch basic account information
-    fetch(`http://localhost:5000/status/${encodeURIComponent(phoneNumber)}`)
+    fetch(`/status/${encodeURIComponent(phoneNumber)}`)
         .then(response => {
             if (!response.ok) {
                 throw new Error('Failed to fetch account data');
@@ -51,7 +51,7 @@ function fetchAccountData(phoneNumber) {
             returnsContainer.innerHTML = '';
 
             years.forEach(year => {
-                fetch(`http://localhost:5000/status/${encodeURIComponent(phoneNumber)}/${year}`)
+                fetch(`/status/${encodeURIComponent(phoneNumber)}/${year}`)
                     .then(response => {
                         if (!response.ok) {
                             throw new Error(`Failed to fetch ${year} return`);
