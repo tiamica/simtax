@@ -1,7 +1,7 @@
 Flask==2.3.2
 Flask-Bootstrap==3.3.7.1
-Flask-WTF==1.1.1
+Flask-WTF==1.2.1
 WTForms==3.0.1
-Werkzeug==3.0.1
+Werkzeug==2.3.7
 Flask-CORS==4.0.0
 requests==2.31.0
