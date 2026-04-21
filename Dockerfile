@@ -28,28 +28,8 @@ COPY . .
 # Fix ownership
 RUN chown -R appuser:appgroup /app
 
-# Create nginx configuration (using echo commands)
-RUN echo 'server {' > /etc/nginx/sites-available/simtax && \
-    echo '    listen 8080 default_server;' >> /etc/nginx/sites-available/simtax && \
-    echo '    server_name _;' >> /etc/nginx/sites-available/simtax && \
-    echo '    client_max_body_size 10M;' >> /etc/nginx/sites-available/simtax && \
-    echo '' >> /etc/nginx/sites-available/simtax && \
-    echo '    location ~ ^/(send|status|calculate-tax) {' >> /etc/nginx/sites-available/simtax && \
-    echo '        proxy_pass http://127.0.0.1:5000;' >> /etc/nginx/sites-available/simtax && \
-    echo '        proxy_set_header Host $host;' >> /etc/nginx/sites-available/simtax && \
-    echo '        proxy_set_header X-Real-IP $remote_addr;' >> /etc/nginx/sites-available/simtax && \
-    echo '        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;' >> /etc/nginx/sites-available/simtax && \
-    echo '    }' >> /etc/nginx/sites-available/simtax && \
-    echo '' >> /etc/nginx/sites-available/simtax && \
-    echo '    location / {' >> /etc/nginx/sites-available/simtax && \
-    echo '        proxy_pass http://127.0.0.1:5001;' >> /etc/nginx/sites-available/simtax && \
-    echo '        proxy_set_header Host $host;' >> /etc/nginx/sites-available/simtax && \
-    echo '        proxy_set_header X-Real-IP $remote_addr;' >> /etc/nginx/sites-available/simtax && \
-    echo '        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;' >> /etc/nginx/sites-available/simtax && \
-    echo '    }' >> /etc/nginx/sites-available/simtax && \
-    echo '}' >> /etc/nginx/sites-available/simtax
-
-# Enable the site
+# Install nginx configuration
+COPY nginx.conf /etc/nginx/sites-available/simtax
 RUN ln -sf /etc/nginx/sites-available/simtax /etc/nginx/sites-enabled/ && \
     rm -f /etc/nginx/sites-enabled/default
 

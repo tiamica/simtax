@@ -9,6 +9,14 @@ import datetime
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['WTF_CSRF_SSL_STRICT'] = False
+
+# Trust the proxy's forwarded headers (needed when running behind nginx/Gitpod)
+from werkzeug.middleware.proxy_fix import ProxyFix
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
 Bootstrap(app)
 
 # Mock server URL
